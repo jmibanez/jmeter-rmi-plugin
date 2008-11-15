@@ -41,24 +41,16 @@ import java.rmi.server.UnicastRemoteObject;
 public class NativeRmiProxy
     implements Runnable {
 
-    private String stubClass;
-    private String hostname;
-    private int port;
+    private String targetRmiName;
     private String actualObjectName;
     private String proxyObjectName;
 
     private Object stubInstance;
     private DynamicStubProxyInvocationHandler handler;
 
-    private static Registry r;
-    static {
-        try {
-            r = LocateRegistry.createRegistry(1099);
-        }
-        catch(Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+    private Registry r;
+    private int namingPort;
+    private int serverPort;
 
     private ServerSocket eventSocket;
     private volatile boolean stillRunning;
@@ -68,30 +60,13 @@ public class NativeRmiProxy
      * Creates a new <code>NativeRmiProxy</code> instance.
      *
      */
-    public NativeRmiProxy(String targetRmiName, String stubClass) {
+    public NativeRmiProxy(String targetRmiName) {
         int idxSepObjectName = targetRmiName.lastIndexOf("/");
+        this.targetRmiName = targetRmiName;
         actualObjectName = targetRmiName.substring(idxSepObjectName + 1);
-        String hostAndPort = targetRmiName.substring(0, idxSepObjectName);
-        String[] hostPortSplit = hostAndPort.split(":", 2);
-        if(hostPortSplit.length == 1) {
-            hostname = hostAndPort;
-            port = 1099;
-        }
-        else {
-            hostname = hostPortSplit[0];
-            port = new Integer(hostPortSplit[1]);
-        }
 
         proxyObjectName = actualObjectName;
-        this.stubClass = stubClass;
     }
-
-    private static String getBinding(String hostname, int port, String bindName) {
-        String binding = hostname + ":" + port + "/" + bindName;
-        log.debug(binding);
-        return binding;
-    }
-
 
     private void registerProxy(Remote proxy) throws RemoteException, AccessException {
         r.rebind(proxyObjectName, proxy);
@@ -104,12 +79,14 @@ public class NativeRmiProxy
 
     private void setupProxy() {
         try {
+            // Create naming registry
+            r = LocateRegistry.createRegistry(namingPort);
+
             // Get stub from actual
             try {
-                stubInstance = Naming.lookup(getBinding(hostname, port, actualObjectName));
+                stubInstance = Naming.lookup(targetRmiName);
             }
             catch(MalformedURLException mfe) {
-                assert false: "Should not happen";
             }
 
             // Create recorder
@@ -132,7 +109,7 @@ public class NativeRmiProxy
             Object proxy = spCons.newInstance(new Object[] { handler });
 
             // Register ourselves on our naming service
-            registerProxy(UnicastRemoteObject.exportObject((Remote) proxy, 1100));
+            registerProxy(UnicastRemoteObject.exportObject((Remote) proxy, serverPort));
             
         }
         catch(RemoteException remoteEx) {
@@ -232,6 +209,6 @@ public class NativeRmiProxy
 
     public static void main(String[] args) {
         //String targetRmiName, String stubClass
-        new Thread(new NativeRmiProxy("//10.10.1.123:1200/server", "c2.server.Server_Stub")).start();
+        new Thread(new NativeRmiProxy("//10.10.1.123:1200/server")).start();
     }
 }
