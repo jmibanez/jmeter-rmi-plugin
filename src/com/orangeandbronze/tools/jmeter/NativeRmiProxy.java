@@ -72,6 +72,10 @@ public class NativeRmiProxy
         r.rebind(proxyObjectName, proxy);
     }
 
+    private void unregisterProxy() throws RemoteException, NotBoundException {
+        r.unbind(proxyObjectName);
+    }
+
     private MethodRecorder createRecorder() throws RemoteException, NotBoundException {
         MethodRecorder impl = new SimpleLoggingMethodRecorder();
         return impl;
@@ -204,7 +208,15 @@ public class NativeRmiProxy
                 } catch (Exception e) {}
             }
             log("Socket closed");
+
+            try {
+                unregisterProxy();
+            } catch (Exception e) {}
         }
+    }
+
+    public void stop() {
+        stillRunning = false;
     }
 
     public static void main(String[] args) {
