@@ -27,6 +27,7 @@ import java.rmi.registry.Registry;
 import org.apache.log4j.Logger;
 
 import com.orangeandbronze.tools.jmeter.impl.SimpleLoggingMethodRecorder;
+import java.rmi.server.UnicastRemoteObject;
 
 /**
  * <p>A proxy for RMI remote objects.</p>
@@ -98,18 +99,7 @@ public class NativeRmiProxy
 
     private MethodRecorder createRecorder() throws RemoteException, NotBoundException {
         MethodRecorder impl = new SimpleLoggingMethodRecorder();
-        r.rebind("$proxy$recorder", impl);
-
-        // Once bound, get the stub
-        try {
-            MethodRecorder stub = (MethodRecorder) Naming.lookup("$proxy$recorder");
-            return stub;
-        }
-        catch(MalformedURLException mfe) {
-            assert false: "Should not happen";
-        }
-
-        return null;
+        return impl;
     }
 
     private void setupProxy() {
@@ -126,10 +116,12 @@ public class NativeRmiProxy
             MethodRecorder r = createRecorder();
 
             // Build dynamic stub proxy
-            Class stub = Class.forName(stubClass);
+            Class stub = stubInstance.getClass();
             if(stub == null) {
                 throw new RuntimeException("Couldn't find stub class");
             }
+
+            log.debug("Stub class: " + stub.getName());
 
             Class[] stubInterfaces = stub.getInterfaces();
             Class stubProxyClass = Proxy.getProxyClass(getClass().getClassLoader(),
@@ -140,7 +132,7 @@ public class NativeRmiProxy
             Object proxy = spCons.newInstance(new Object[] { handler });
 
             // Register ourselves on our naming service
-            registerProxy((Remote) proxy);
+            registerProxy(UnicastRemoteObject.exportObject((Remote) proxy, 1100));
             
         }
         catch(RemoteException remoteEx) {
@@ -149,9 +141,6 @@ public class NativeRmiProxy
         }
         catch(NotBoundException boundEx) {
             throw new RuntimeException(boundEx);
-        }
-        catch(ClassNotFoundException cnfEx) {
-            log.error(cnfEx);
         }
         catch(NoSuchMethodException nmEx) {
             log.error(nmEx);
