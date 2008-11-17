@@ -9,6 +9,9 @@ import java.io.Serializable;
 public class DynamicStubProxyInvocationHandler
     implements InvocationHandler, Serializable
 {
+
+    private static final long serialVersionUID = -30090000L;
+
     private Object stubInstance;
     private MethodRecorder recorder;
 
@@ -20,20 +23,38 @@ public class DynamicStubProxyInvocationHandler
     }
 
     private void recordCall(MethodCallRecord r) {
-        recorder.recordCall(r);
+        try {
+            recorder.recordCall(r);
+        }
+        catch(Exception suppress) {
+            log.warn(suppress);
+            suppress.printStackTrace();
+        }
     }
 
-    public Object invoke(Object instance, Method m, Object[] args) {
+    public Object invoke(Object instance, Method m, Object[] args) throws Throwable {
+        log.info("Calling method " + m.getName());
+        MethodCallRecord r = new MethodCallRecord(m, args);
+        log.info("Record created");
         try {
             Object returnValue = m.invoke(stubInstance, args);
-            recordCall(new MethodCallRecord(m, args, returnValue));
+            r.returned(returnValue);
             return returnValue;
         }
         catch(InvocationTargetException invokEx) {
-            throw new RuntimeException(invokEx);
+            log.debug("Invocation target exception");
+            Throwable cause = invokEx.getCause();
+            log.debug("Root cause: " + cause);
+            log.debug(cause);
+            r.thrown(cause);
+            throw cause;
         }
         catch(IllegalAccessException accessEx) {
+            log.warn(accessEx);
             throw new RuntimeException(accessEx);
+        }
+        finally {
+            recordCall(r);
         }
     }
 }
