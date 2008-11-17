@@ -27,6 +27,7 @@ import java.rmi.registry.Registry;
 import org.apache.log4j.Logger;
 
 import com.orangeandbronze.tools.jmeter.impl.SimpleLoggingMethodRecorder;
+import com.orangeandbronze.tools.jmeter.impl.NullMethodRecorder;
 import java.rmi.server.UnicastRemoteObject;
 
 /**
@@ -56,6 +57,8 @@ public class NativeRmiProxy
     private volatile boolean stillRunning;
     private static Logger log = Logger.getLogger(NativeRmiProxy.class);
 
+    private MethodRecorder recorder;
+
     /**
      * Creates a new <code>NativeRmiProxy</code> instance.
      *
@@ -66,7 +69,33 @@ public class NativeRmiProxy
         actualObjectName = targetRmiName.substring(idxSepObjectName + 1);
 
         proxyObjectName = actualObjectName;
+        recorder = new NullMethodRecorder();
     }
+
+    public int getServerPort() {
+        return serverPort;
+    }
+
+    public void setServerPort(int serverPort) {
+        this.serverPort = serverPort;
+    }
+
+    public int getNamingPort() {
+        return namingPort;
+    }
+
+    public void setNamingPort(int namingPort) {
+        this.namingPort = namingPort;
+    }
+
+    public MethodRecorder getMethodRecorder() {
+        return recorder;
+    }
+
+    public void setMethodRecorder(MethodRecorder recorder) {
+        this.recorder = recorder;
+    }
+
 
     private void registerProxy(Remote proxy) throws RemoteException, AccessException {
         r.rebind(proxyObjectName, proxy);
@@ -76,15 +105,15 @@ public class NativeRmiProxy
         r.unbind(proxyObjectName);
     }
 
-    private MethodRecorder createRecorder() throws RemoteException, NotBoundException {
-        MethodRecorder impl = new SimpleLoggingMethodRecorder();
-        return impl;
+    private static Registry createOrLocateRegistry(int port) throws RemoteException {
+        return LocateRegistry.createRegistry(port);
     }
+
 
     private void setupProxy() {
         try {
             // Create naming registry
-            r = LocateRegistry.createRegistry(namingPort);
+            r = createOrLocateRegistry(namingPort);
 
             // Get stub from actual
             try {
@@ -94,7 +123,7 @@ public class NativeRmiProxy
             }
 
             // Create recorder
-            MethodRecorder r = createRecorder();
+            MethodRecorder r = getMethodRecorder();
 
             // Build dynamic stub proxy
             Class stub = stubInstance.getClass();
@@ -187,7 +216,7 @@ public class NativeRmiProxy
         log("Setting up proxy");
         setupProxy();
         try {
-            eventSocket = new ServerSocket(32001, 0, getLocalHost());
+            eventSocket = new ServerSocket(32002, 0, getLocalHost());
         }
         catch(IOException ioEx) {
             return;
