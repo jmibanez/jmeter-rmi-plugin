@@ -9,8 +9,9 @@
    (list "/usr/share/java"
          "./lib"
          "~/apps/jmeter/lib/ext"
+         "~/apps/jmeter/lib"
          "./build/main"
          "./build/test"))
- '(jde-gen-k&r nil)
+ '(jde-gen-k&r t)
  '(tab-width 4)
  '(jde-sourcepath '("./src" "./test")))

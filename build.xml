@@ -20,6 +20,9 @@
     <fileset dir="${jmeter.home}/lib/ext">
       <include name="*.jar" />
     </fileset>
+    <fileset dir="${jmeter.home}/lib">
+      <include name="*.jar" />
+    </fileset>
     <fileset dir="${lib.directory}">
       <include name="*.jar" />
     </fileset>
