@@ -116,7 +116,8 @@ public class RMISampler extends AbstractSampler {
 
         try {
             Class targetClass = target.getClass();
-            Method m = targetClass.getMethod(methodName, argTypes);
+            String actualMethodName = getMethodName(methodName);
+            Method m = targetClass.getMethod(actualMethodName, argTypes);
 
             res.setMethod(m);
             res.setArguments(args);
@@ -142,5 +143,13 @@ public class RMISampler extends AbstractSampler {
         }
 
         return res;
+    }
+
+    private String getMethodName(String methodNameAndArgs) {
+        if(methodNameAndArgs.indexOf(":") > -1) {
+            return methodNameAndArgs.substring(methodNameAndArgs.indexOf("("));
+        }
+
+        return methodNameAndArgs;
     }
 }

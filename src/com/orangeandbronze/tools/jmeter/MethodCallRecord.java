@@ -26,8 +26,8 @@ public class MethodCallRecord
     }
 
     public MethodCallRecord(Method m, Object[] args) {
-        this.method = m.getName();
         this.argTypes = m.getParameterTypes();
+        this.method = constructMethodName(m.getName(), this.argTypes);
         this.args = args;
         packArgs();
     }
@@ -68,6 +68,26 @@ public class MethodCallRecord
 
     public boolean isException() {
         return isException;
+    }
+
+    public static String constructMethodName(String methodName, Class[] argTypes) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(methodName);
+
+        if(argTypes == null || argTypes.length == 0) {
+            sb.append(":");
+            return sb.toString();
+        }
+
+        sb.append(":");
+        for(Class c : argTypes) {
+            sb.append(c.getName());
+            sb.append(",");
+        }
+
+        sb.deleteCharAt(sb.length() - 1);
+
+        return sb.toString();
     }
 
     private void writeObject(ObjectOutputStream out)

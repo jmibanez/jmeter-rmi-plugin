@@ -14,6 +14,8 @@ import java.rmi.Naming;
 import java.util.HashMap;
 import java.rmi.Remote;
 import org.apache.jmeter.testelement.property.StringProperty;
+import com.orangeandbronze.tools.jmeter.gui.RMIRemoteObjectConfigGUI;
+import java.lang.reflect.Method;
 
 /**
  * Describe class RMIRemoteObjectConfig here.
@@ -98,12 +100,15 @@ public class RMIRemoteObjectConfig
         return sequenceId;
     }
 
-    public Remote getTarget() {
-        try {
-            target = (Remote) Naming.lookup(getTargetRmiName());
-        }
-        catch(Exception ignored) {
-            throw new RuntimeException(ignored);
+    public synchronized Remote getTarget() {
+        if(target == null) {
+            try {
+                target = (Remote) Naming.lookup(getTargetRmiName());
+                configureMethodBindings(target);
+            }
+            catch(Exception ignored) {
+                throw new RuntimeException(ignored);
+            }
         }
 
         return target;
@@ -115,6 +120,33 @@ public class RMIRemoteObjectConfig
 
     public void setTargetRmiName(String value) {
         setProperty(new StringProperty(TARGET_RMI_NAME, value));
+    }
+
+    private void configureMethodBindings(Remote target) {
+        Class targetClass = target.getClass();
+        Method[] targetMethods = targetClass.getMethods();
+        for(Method m : targetMethods) {
+            String rawMethodName = m.getName();
+            Class[] argTypes = m.getParameterTypes();
+            StringBuilder sb = new StringBuilder();
+            sb.append(rawMethodName);
+
+            if(argTypes == null || argTypes.length == 0) {
+                sb.append(":");
+            }
+            else {
+                sb.append(":");
+                for(Class c : argTypes) {
+                    sb.append(c.getName());
+                    sb.append(",");
+                }
+
+                sb.deleteCharAt(sb.length() - 1);
+            }
+
+            String methodName = sb.toString();
+            methodTypesMap.put(methodName, argTypes);
+        }
     }
 
     public static class SequenceID {
