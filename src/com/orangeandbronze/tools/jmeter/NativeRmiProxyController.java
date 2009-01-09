@@ -115,7 +115,74 @@ public class NativeRmiProxyController extends GenericController {
 
     private String createArgumentsScript(MethodCallRecord record) {
         log.info("Creating script for method call record");
-        return "---";
+        Class[] argTypes = record.getArgumentTypes();
+        Object[] args = record.getArguments();
+
+        if(argTypes == null || argTypes.length == 0) {
+            return "// No arguments";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("sampler.setArguments(");
+
+        // REFACTORME: Move to a separate method?
+        StringBuilder argString = new StringBuilder();
+        for(int i = 0; i < argTypes.length; i++) {
+            Class argType = argTypes[i];
+            if(argType == String.class) {
+                if(args[i] != null) {
+                    argString.append('"');
+                    argString.append(args[i]);
+                    argString.append('"');
+                }
+                else {
+                    argString.append("null /* null string */");
+                }
+            }
+            else if(argType == boolean.class
+                    || argType == int.class
+                    || argType == long.class
+                    || argType == float.class
+                    || argType == double.class) {
+                argString.append(args[i]);
+            }
+            else if(argType == Object.class) {
+                // Raw object -- dump the toString representation as a comment
+                argString.append("new ");
+                argString.append(argType.getCanonicalName());
+                argString.append("()");
+                try {
+                    argString.append(" /*");
+                    argString.append(args[i]);
+                    argString.append(" */");
+                }
+                catch(Exception e) {
+                    // Because the toString() methods we are calling on
+                    // the arguments passed may throw exceptions (for
+                    // example, NPE due to an object depending on a static
+                    // variable which we have no way of knowing needs to
+                    // be set), we have to add a general catch. This then
+                    // simply appends the argString with a note of that
+                    argString.append(" /* !!! Exception converting argument to string: ");
+                    argString.append(e.getMessage());
+                    argString.append(" -- see log */");
+                    log.warn("Exception converting argument to string: ", e);
+                }
+            }
+            else {
+                // Some user-defined class
+                argString.append("new ");
+                argString.append(argType.getCanonicalName());
+                argString.append("()");
+            }
+            argString.append(",");
+        }
+        argString.deleteCharAt(argString.length() - 1);
+
+        sb.append(argString.toString());
+        sb.append(")");
+
+        return sb.toString();
     }
 
 
