@@ -179,8 +179,8 @@ public class NativeRmiProxyController extends GenericController {
                 treeModel.addComponent(subConfigs[i], newNode);
                 if(subConfigs[i] instanceof BeanShellPreProcessor) {
                     BeanShellPreProcessor argsPreProc = (BeanShellPreProcessor) subConfigs[i];
-                    argsPreProc.setFilename("");
-                    argsPreProc.setScript(createArgumentsScript(record));
+                    argsPreProc.setFilename(null);
+                    argsPreProc.setProperty("script", createArgumentsScript(record));
                 }
             }
 
