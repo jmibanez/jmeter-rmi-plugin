@@ -24,11 +24,13 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
-import org.apache.log4j.Logger;
+//import org.apache.log4j.Logger;
+import org.apache.log.Logger;
 
 import com.orangeandbronze.tools.jmeter.impl.SimpleLoggingMethodRecorder;
 import com.orangeandbronze.tools.jmeter.impl.NullMethodRecorder;
 import java.rmi.server.UnicastRemoteObject;
+import org.apache.jorphan.logging.LoggingManager;
 
 /**
  * <p>A proxy for RMI remote objects.</p>
@@ -55,7 +57,7 @@ public class NativeRmiProxy
 
     private ServerSocket eventSocket;
     private volatile boolean stillRunning;
-    private static Logger log = Logger.getLogger(NativeRmiProxy.class);
+    private static Logger log = LoggingManager.getLoggerForClass(); // Logger.getLogger(NativeRmiProxy.class);
 
     private MethodRecorder recorder;
 
@@ -146,14 +148,14 @@ public class NativeRmiProxy
             
         }
         catch(RemoteException remoteEx) {
-            log.error(remoteEx);
+            log.error("RemoteException thrown while setting up proxy", remoteEx);
             throw new RuntimeException(remoteEx);
         }
         catch(NotBoundException boundEx) {
             throw new RuntimeException(boundEx);
         }
         catch(NoSuchMethodException nmEx) {
-            log.error(nmEx);
+            log.error("No such method found, while setting up proxy", nmEx);
         }
         catch(InvocationTargetException invokEx) {
             throw new RuntimeException(invokEx);

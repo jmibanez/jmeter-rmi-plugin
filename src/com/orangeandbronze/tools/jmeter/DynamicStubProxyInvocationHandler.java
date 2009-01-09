@@ -2,9 +2,12 @@ package com.orangeandbronze.tools.jmeter;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
-import org.apache.log4j.Logger;
+import org.apache.log.Logger;
+//import org.apache.log4j.Logger;
 import java.lang.reflect.Method;
 import java.io.Serializable;
+import org.apache.jorphan.logging.LoggingManager;
+import java.rmi.RemoteException;
 
 public class DynamicStubProxyInvocationHandler
     implements InvocationHandler, Serializable
@@ -15,7 +18,7 @@ public class DynamicStubProxyInvocationHandler
     private Object stubInstance;
     private MethodRecorder recorder;
 
-    private static Logger log = Logger.getLogger(DynamicStubProxyInvocationHandler.class);
+    private static Logger log = LoggingManager.getLoggerForClass(); // Logger.getLogger(DynamicStubProxyInvocationHandler.class);
 
     public DynamicStubProxyInvocationHandler(Object stubInstance, MethodRecorder r) {
         this.stubInstance = stubInstance;
@@ -27,7 +30,7 @@ public class DynamicStubProxyInvocationHandler
             recorder.recordCall(r);
         }
         catch(Exception suppress) {
-            log.warn(suppress);
+            log.warn("Suppressed exception when recording call:", suppress);
             suppress.printStackTrace();
         }
     }
@@ -44,13 +47,12 @@ public class DynamicStubProxyInvocationHandler
         catch(InvocationTargetException invokEx) {
             log.debug("Invocation target exception");
             Throwable cause = invokEx.getCause();
-            log.debug("Root cause: " + cause);
-            log.debug(cause);
+            log.debug("Root cause: ", cause);
             r.thrown(cause);
             throw cause;
         }
         catch(IllegalAccessException accessEx) {
-            log.warn(accessEx);
+            log.warn("Illegal access exception during proxy method invocation", accessEx);
             throw new RuntimeException(accessEx);
         }
         finally {
