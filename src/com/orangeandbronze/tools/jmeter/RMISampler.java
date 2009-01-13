@@ -147,7 +147,7 @@ public class RMISampler extends AbstractSampler {
 
     private String getMethodName(String methodNameAndArgs) {
         if(methodNameAndArgs.indexOf(":") > -1) {
-            return methodNameAndArgs.substring(methodNameAndArgs.indexOf("("));
+            return methodNameAndArgs.substring(0, methodNameAndArgs.indexOf(":"));
         }
 
         return methodNameAndArgs;
