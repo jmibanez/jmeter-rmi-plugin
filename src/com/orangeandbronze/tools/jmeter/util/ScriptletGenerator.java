@@ -84,7 +84,7 @@ public class ScriptletGenerator {
            || beanType == Long.class
            || beanType == Float.class
            || beanType == Double.class) {
-            return getPrimitiveType(beanType) + " " + varname + " = " + bean + ";\n";
+            return primitiveAsScriptlet(varname, bean);
         }
 
         if(beanType == String.class) {
@@ -222,29 +222,41 @@ public class ScriptletGenerator {
         return scriptlet.toString();
     }
 
-    private String getPrimitiveType(Class primitiveClass) {
-        assert primitiveClass != null : "Primitive class argument must not be null";
+    private String primitiveAsScriptlet(String varname, Object pInstance) {
+        assert pInstance != null : "pInstance cannot be null";
+
+        String pTypeString = null;
+        String pTypeVal    = pInstance.toString();
+
+        Class primitiveClass = pInstance.getClass();
 
         if(primitiveClass == boolean.class
            || primitiveClass == Boolean.class) {
-            return "boolean";
+            pTypeString = "boolean";
         }
 
         if(primitiveClass == int.class
            || primitiveClass == Integer.class) {
-            return "int";
+            pTypeString = "int";
         }
         if(primitiveClass == long.class
            || primitiveClass == Long.class) {
-            return "long";
+            pTypeString = "long";
+            pTypeVal    = pInstance.toString().contains("L") ? pInstance.toString() : pInstance.toString() + "L";
         }
         if(primitiveClass == float.class
            || primitiveClass == Float.class) {
-            return "float";
+            pTypeString = "float";
+            pTypeVal    = pInstance.toString().contains("f") ? pInstance.toString() : pInstance.toString() + "f";
         }
         if(primitiveClass == double.class
            || primitiveClass == Double.class) {
-            return "double";
+            pTypeString = "double";
+            pTypeVal    = pInstance.toString().contains("d") ? pInstance.toString() : pInstance.toString() + "d";
+        }
+
+        if(pTypeString != null) {
+            return pTypeString + " " + varname + " = " + pTypeVal + ";\n";
         }
 
         throw new IllegalArgumentException("Not recognized as a primitive class:" + primitiveClass.getCanonicalName());
