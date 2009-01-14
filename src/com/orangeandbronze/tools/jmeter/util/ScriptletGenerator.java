@@ -16,6 +16,9 @@ import java.beans.IntrospectionException;
 import java.util.Collection;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Array;
+import java.util.Iterator;
+import java.util.Properties;
+import java.util.Map;
 
 /**
  * Describe class ScriptletGenerator here.
@@ -231,6 +234,113 @@ public class ScriptletGenerator {
     }
 
     private String unpackCollection(String varname, Collection c) {
-        return null;
+        StringBuilder cScr = new StringBuilder();
+
+        if(c instanceof Properties) {
+            // Special-case: Properties
+            return unpackProperties(varname, (Properties) c);
+        }
+
+        if(c instanceof Map) {
+            // Special-case: Maps
+            return unpackMapAsKeyValue(varname, (Map) c);
+        }
+
+        int i = 0;
+        for(Iterator ii = c.iterator(); ii.hasNext(); ) {
+            Object o = ii.next();
+            cScr.append(generateScriptletForObject(o, varname + "_element" + i, Object.class));
+            i++;
+        }
+
+        cScr.append(c.getClass().getCanonicalName());
+        cScr.append(" ");
+        cScr.append(varname);
+        cScr.append(" = new ");
+        cScr.append(c.getClass().getCanonicalName());
+        cScr.append("();\n");
+
+        i = 0;
+        for(Iterator ii = c.iterator(); ii.hasNext(); ) {
+            cScr.append(varname);
+            cScr.append(".add(");
+            cScr.append(varname);
+            cScr.append("_element");
+            cScr.append(i);
+            cScr.append(");\n");
+            i++;
+        }
+
+        return cScr.toString();
+    }
+
+    private String unpackMapAsKeyValue(String varname, Map m) {
+        StringBuilder mapScr = new StringBuilder();
+
+        mapScr.append(m.getClass().getCanonicalName());
+        mapScr.append(" ");
+        mapScr.append(varname);
+        mapScr.append(" = new ");
+        mapScr.append(m.getClass().getCanonicalName());
+        mapScr.append("();\n");
+        
+
+        int i = 0;
+        for(Object key : m.keySet()) {
+            Object val = m.get(key);
+
+            if(!(key instanceof String)) {
+                mapScr.append(generateScriptletForObject(key, varname + "_key" + i));
+            }
+            if(!(val instanceof String)) {
+                mapScr.append(generateScriptletForObject(val, varname + "_val" + i));
+            }
+
+            mapScr.append(varname);
+            mapScr.append(".put(");
+            if(key instanceof String) {
+                mapScr.append(stringAsScriptlet((String) key));
+            }
+            else {
+                mapScr.append(varname);
+                mapScr.append("_key");
+                mapScr.append(i);
+            }
+
+            mapScr.append(", ");
+
+            if(val instanceof String) {
+                mapScr.append(stringAsScriptlet((String) val));
+            }
+            else {
+                mapScr.append(varname);
+                mapScr.append("_val");
+                mapScr.append(i);
+            }
+            mapScr.append(");\n");
+
+            i++;
+        }
+
+        return mapScr.toString();
+    }
+
+    private String unpackProperties(String varname, Properties p) {
+        StringBuilder pScr = new StringBuilder();
+
+        pScr.append("java.util.Properties ");
+        pScr.append(varname);
+        pScr.append(" = new Properties();\n");
+
+        for(String name : p.stringPropertyNames()) {
+            pScr.append(varname);
+            pScr.append(".setProperty(");
+            pScr.append(stringAsScriptlet(name));
+            pScr.append(", ");
+            pScr.append(stringAsScriptlet(p.getProperty(name)));
+            pScr.append(");\n");
+        }
+
+        return pScr.toString();
     }
 }
