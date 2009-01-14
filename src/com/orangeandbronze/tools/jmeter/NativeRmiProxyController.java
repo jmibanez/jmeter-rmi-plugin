@@ -135,14 +135,24 @@ public class NativeRmiProxyController extends GenericController {
 
         StringBuilder sb = new StringBuilder();
         for(int i = 0; i < args.length; i++) {
+            if(args[i] == null) {
+                continue;
+            }
+
             sb.append(ScriptletGenerator.getInstance()
                       .generateScriptletForObject(args[i], "args" + i, argTypes[i]));
         }
 
         sb.append("Object[] args = new Object[] { ");
         for(int i = 0; i < args.length; i++) {
-            sb.append("args");
-            sb.append(i);
+            if(args[i] != null) {
+                sb.append("args");
+                sb.append(i);
+            }
+            else {
+                sb.append("null");
+            }
+
             if(i != args.length - 1) {
                 sb.append(", ");
             }

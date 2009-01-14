@@ -150,6 +150,17 @@ public class ScriptletGenerator {
 
                 String varname_subvar = varname + "_beanArg" + objCount;
                 objCount++;
+
+                if(val == null) {
+                    // Special-case: null
+                    scriptlet.append(varname);
+                    scriptlet.append(".");
+                    scriptlet.append(p.getWriteMethod().getName());
+
+                    scriptlet.append("(null);\n");
+                    continue;
+                }
+
                 String argScriptlet = generateScriptletForObject(val, varname_subvar);
                 scriptlet.append(argScriptlet);
                 scriptlet.append(varname);
@@ -191,6 +202,16 @@ public class ScriptletGenerator {
 
             String varname_subvar = varname + "_pubArg" + objCount;
             objCount++;
+
+            if(val == null) {
+                // Special-case: null
+                scriptlet.append(varname);
+                scriptlet.append(".");
+                scriptlet.append(f.getName());
+                scriptlet.append(" = null;\n");
+                continue;
+            }
+
             String argScriptlet = generateScriptletForObject(val, varname_subvar);
             scriptlet.append(argScriptlet);
             scriptlet.append(varname);
