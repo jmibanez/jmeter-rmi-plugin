@@ -16,6 +16,8 @@ import java.rmi.Remote;
 import org.apache.jmeter.testelement.property.StringProperty;
 import com.orangeandbronze.tools.jmeter.gui.RMIRemoteObjectConfigGUI;
 import java.lang.reflect.Method;
+import org.apache.jmeter.threads.JMeterContext;
+import org.apache.jmeter.threads.JMeterContextService;
 
 /**
  * Describe class RMIRemoteObjectConfig here.
@@ -30,12 +32,13 @@ public class RMIRemoteObjectConfig
     extends ConfigTestElement {
 
     public static final String TARGET_RMI_NAME = "RmiRemoteObjectConfig.target_rmi_name";
-
-    private Remote target;
+    public static final String REMOTE_OBJ = "RMI_RemoteObject";
 
     private Map<SequenceID, Object[]> argumentsMap;
     private Map<String, Class[]> methodTypesMap;
     private Map<String, Integer> sequenceMap;
+
+    private boolean methodBindingsConfigured = false;
 
 
     /**
@@ -101,10 +104,16 @@ public class RMIRemoteObjectConfig
     }
 
     public synchronized Remote getTarget() {
+        JMeterContext jmctx = JMeterContextService.getContext();
+        Remote target = (Remote) jmctx.getVariables().getObject(REMOTE_OBJ);
+
         if(target == null) {
             try {
                 target = (Remote) Naming.lookup(getTargetRmiName());
-                configureMethodBindings(target);
+                if(!methodBindingsConfigured) {
+                    configureMethodBindings(target);
+                }
+                jmctx.getVariables().putObject(REMOTE_OBJ, target);
             }
             catch(Exception ignored) {
                 throw new RuntimeException(ignored);
@@ -147,6 +156,7 @@ public class RMIRemoteObjectConfig
             String methodName = sb.toString();
             methodTypesMap.put(methodName, argTypes);
         }
+        methodBindingsConfigured = true;
     }
 
     public static class SequenceID {
