@@ -130,18 +130,21 @@ public class ScriptletGenerator {
         if(bi != null) {
             PropertyDescriptor[] props = bi.getPropertyDescriptors();
             for(PropertyDescriptor p : props) {
+                String varname_subvar = varname + "_" + p.getName();
                 if("class".equals(p.getName())) {
                     continue;
                 }
 
-                if(p.getReadMethod() == null
-                   || p.getWriteMethod() == null) {
-                    continue;
-                } 
-
                 Object val = null;
                 try {
-                    val = p.getReadMethod().invoke(bean);
+                    if(p.getReadMethod() != null) {
+                        val = p.getReadMethod().invoke(bean);
+                    }
+                    else {
+                        scriptlet.append("/* ");
+                        scriptlet.append(varname_subvar);
+                        scriptlet.append(" is write-only, cannot get value */\n");
+                    }
                 }
                 catch(IllegalAccessException accessEx) {
                     // Filler value
@@ -151,21 +154,37 @@ public class ScriptletGenerator {
                     val = "/* Couldn't populate value */";
                 }
 
-                String varname_subvar = varname + "_" + p.getName();
                 objCount++;
 
                 if(val == null) {
-                    // Special-case: null
-                    scriptlet.append(varname);
-                    scriptlet.append(".");
-                    scriptlet.append(p.getWriteMethod().getName());
+                    if(p.getWriteMethod() != null) {
+                        // Special-case: null
+                        scriptlet.append(varname);
+                        scriptlet.append(".");
+                        scriptlet.append(p.getWriteMethod().getName());
 
-                    scriptlet.append("(null);\n");
-                    continue;
+                        scriptlet.append("(null);\n");
+                        continue;
+                    }
+                    else {
+                        scriptlet.append("/* ");
+                        scriptlet.append(varname_subvar);
+                        scriptlet.append(" is read-only, value is null */\n");
+                        continue;
+                    }
                 }
 
                 String argScriptlet = generateScriptletForObject(val, varname_subvar);
                 scriptlet.append(argScriptlet);
+
+                if(p.getWriteMethod() == null) {
+                    // Special-case read-only
+                    scriptlet.append("/*");
+                    scriptlet.append(varname_subvar);
+                    scriptlet.append(" is read-only, no setter */\n");
+                    continue;
+                }
+
                 scriptlet.append(varname);
                 scriptlet.append(".");
                 scriptlet.append(p.getWriteMethod().getName());
