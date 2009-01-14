@@ -75,10 +75,16 @@ public class ScriptletGenerator {
 
         // Primitives: as-is
         if(beanType == boolean.class
+           || beanType == char.class
+           || beanType == byte.class
+           || beanType == short.class
            || beanType == int.class
            || beanType == long.class
            || beanType == float.class
            || beanType == double.class
+           || beanType == Character.class
+           || beanType == Byte.class
+           || beanType == Short.class
            || beanType == Boolean.class
            || beanType == Integer.class
            || beanType == Long.class
@@ -235,6 +241,20 @@ public class ScriptletGenerator {
             pTypeString = "boolean";
         }
 
+        if(primitiveClass == char.class
+           || primitiveClass == Character.class) {
+            pTypeString = "byte";
+            pTypeVal = characterAsScriptlet(pInstance);
+        }
+
+        if(primitiveClass == byte.class
+           || primitiveClass == Byte.class) {
+            pTypeString = "byte";
+        }
+        if(primitiveClass == short.class
+           || primitiveClass == Short.class) {
+            pTypeString = "short";
+        }
         if(primitiveClass == int.class
            || primitiveClass == Integer.class) {
             pTypeString = "int";
@@ -260,6 +280,10 @@ public class ScriptletGenerator {
         }
 
         throw new IllegalArgumentException("Not recognized as a primitive class:" + primitiveClass.getCanonicalName());
+    }
+
+    private String characterAsScriptlet(Object value) {
+        return "'" + value + "'";
     }
 
     private String stringAsScriptlet(String value) {
