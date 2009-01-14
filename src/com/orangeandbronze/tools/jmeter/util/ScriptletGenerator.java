@@ -79,7 +79,7 @@ public class ScriptletGenerator {
            || beanType == long.class
            || beanType == float.class
            || beanType == double.class) {
-            return beanType.toString() + " " + varname + " = " + bean + ";\n";
+            return getPrimitiveType(beanType) + " " + varname + " = " + bean + ";\n";
         }
 
         if(beanType == Boolean.class
@@ -87,7 +87,7 @@ public class ScriptletGenerator {
            || beanType == Long.class
            || beanType == Float.class
            || beanType == Double.class) {
-            return beanType.toString() + " " + varname + " = " + bean + ";\n";
+            return getPrimitiveType(beanType) + " " + varname + " = " + bean + ";\n";
         }
 
         if(beanType == String.class) {
@@ -223,6 +223,34 @@ public class ScriptletGenerator {
         }
 
         return scriptlet.toString();
+    }
+
+    private String getPrimitiveType(Class primitiveClass) {
+        assert primitiveClass != null : "Primitive class argument must not be null";
+
+        if(primitiveClass == boolean.class
+           || primitiveClass == Boolean.class) {
+            return "boolean";
+        }
+
+        if(primitiveClass == int.class
+           || primitiveClass == Integer.class) {
+            return "int";
+        }
+        if(primitiveClass == long.class
+           || primitiveClass == Long.class) {
+            return "long";
+        }
+        if(primitiveClass == float.class
+           || primitiveClass == Float.class) {
+            return "float";
+        }
+        if(primitiveClass == double.class
+           || primitiveClass == Double.class) {
+            return "double";
+        }
+
+        throw new IllegalArgumentException("Not recognized as a primitive class:" + primitiveClass.getCanonicalName());
     }
 
     private String stringAsScriptlet(String value) {
