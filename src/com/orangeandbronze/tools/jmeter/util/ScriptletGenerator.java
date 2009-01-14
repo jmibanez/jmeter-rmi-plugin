@@ -361,8 +361,10 @@ public class ScriptletGenerator {
         cScr.append(c.getClass().getCanonicalName());
         cScr.append("();\n");
 
+
         i = 0;
         for(Iterator ii = c.iterator(); ii.hasNext(); ) {
+            ii.next();
             cScr.append(varname);
             cScr.append(".add(");
             cScr.append(varname);
