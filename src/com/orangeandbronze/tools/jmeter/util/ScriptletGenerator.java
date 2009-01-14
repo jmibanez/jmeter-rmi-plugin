@@ -148,7 +148,7 @@ public class ScriptletGenerator {
                     val = "/* Couldn't populate value */";
                 }
 
-                String varname_subvar = varname + "_beanArg" + objCount;
+                String varname_subvar = varname + "_" + p.getName();
                 objCount++;
 
                 if(val == null) {
@@ -200,7 +200,7 @@ public class ScriptletGenerator {
                 val = "/* Couldn't populate value */";
             }
 
-            String varname_subvar = varname + "_pubArg" + objCount;
+            String varname_subvar = varname + "_" + f.getName();
             objCount++;
 
             if(val == null) {
