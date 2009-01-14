@@ -78,11 +78,8 @@ public class ScriptletGenerator {
            || beanType == int.class
            || beanType == long.class
            || beanType == float.class
-           || beanType == double.class) {
-            return getPrimitiveType(beanType) + " " + varname + " = " + bean + ";\n";
-        }
-
-        if(beanType == Boolean.class
+           || beanType == double.class
+           || beanType == Boolean.class
            || beanType == Integer.class
            || beanType == Long.class
            || beanType == Float.class
