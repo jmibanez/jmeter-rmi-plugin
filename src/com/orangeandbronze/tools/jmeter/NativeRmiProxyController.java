@@ -159,7 +159,7 @@ public class NativeRmiProxyController extends GenericController {
         }
         sb.append(" };\n");
 
-        sb.append("sampler.setArguments(args);");
+        sb.append("com.orangeandbronze.tools.jmeter.util.ArgumentsUtil.setArguments(sampler, args);");
         sb.append("\n\n");
         return sb.toString();
     }
