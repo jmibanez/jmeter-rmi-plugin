@@ -34,9 +34,7 @@ public class RMIRemoteObjectConfig
     public static final String TARGET_RMI_NAME = "RmiRemoteObjectConfig.target_rmi_name";
     public static final String REMOTE_OBJ = "RMI_RemoteObject";
 
-    private Map<SequenceID, Object[]> argumentsMap;
     private Map<String, Class[]> methodTypesMap;
-    private Map<String, Integer> sequenceMap;
 
     private boolean methodBindingsConfigured = false;
 
@@ -46,17 +44,7 @@ public class RMIRemoteObjectConfig
      *
      */
     public RMIRemoteObjectConfig() {
-        argumentsMap = new HashMap<SequenceID, Object[]>();
-        sequenceMap = new HashMap<String,Integer>();
         methodTypesMap = new HashMap<String, Class[]>();
-
-        sequenceMap.put("getResource", 1);
-        methodTypesMap.put("getResource", new Class[] { String.class, String.class, String.class });
-        SequenceID seq = new SequenceID("getResource", Integer.toString(1));
-        argumentsMap.put(seq, new Object[] { null, "app.ini", ""});
-
-        System.out.println(argumentsMap);
-        System.out.println(sequenceMap);
     }
 
     @Override
@@ -68,11 +56,6 @@ public class RMIRemoteObjectConfig
         return com.orangeandbronze.tools.jmeter.gui.RMIRemoteObjectConfigGUI.class;
     }
 
-    public Object[] getArguments(String methodName, String sequenceId) {
-        SequenceID seq = new SequenceID(methodName, sequenceId);
-        return argumentsMap.get(seq);
-    }
-
     public Class[] getArgumentTypes(String methodName) {
         if(methodName.equals("setCount")) {
             return new Class[] { int.class };
@@ -82,25 +65,6 @@ public class RMIRemoteObjectConfig
 
     public void setArgumentTypes(String methodName, Class[] argTypes) {
         methodTypesMap.put(methodName, argTypes);
-    }
-
-    // Return sequence ID
-    public String addNewArguments(String methodName, Object[] args) {
-        Integer seqNo_r = sequenceMap.get(methodName);
-        int seqNo = 1;
-
-        if(seqNo_r != null) {
-            seqNo = seqNo_r;
-            seqNo++;
-        }
-
-        sequenceMap.put(methodName, seqNo);
-
-        String sequenceId = Integer.toString(seqNo);
-        SequenceID seq = new SequenceID(methodName, sequenceId);
-        argumentsMap.put(seq, args);
-
-        return sequenceId;
     }
 
     public synchronized Remote getTarget() {
@@ -157,33 +121,5 @@ public class RMIRemoteObjectConfig
             methodTypesMap.put(methodName, argTypes);
         }
         methodBindingsConfigured = true;
-    }
-
-    public static class SequenceID {
-        private String method;
-        private String sequenceId;
-
-        public SequenceID(String method, String sequenceId) {
-            this.method = method;
-            this.sequenceId = sequenceId;
-        }
-
-        public String getMethod() {
-            return method;
-        }
-
-        public String getSequenceId() {
-            return sequenceId;
-        }
-
-        public boolean equals(Object other) {
-            if(! (other instanceof SequenceID)) {
-                return false;
-            }
-
-            SequenceID otherS = (SequenceID) other;
-            return (method.equals(otherS.method)
-                    && sequenceId.equals(otherS.sequenceId));
-        }
     }
 }
