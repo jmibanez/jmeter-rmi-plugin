@@ -19,6 +19,8 @@ import java.lang.reflect.Array;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.Map;
+import org.apache.jorphan.logging.LoggingManager;
+import org.apache.log.Logger;
 
 /**
  * Describe class ScriptletGenerator here.
@@ -31,6 +33,7 @@ import java.util.Map;
  */
 public class ScriptletGenerator {
 
+    private static Logger log = LoggingManager.getLoggerForClass();
     private static ScriptletGenerator instance = null;
     static {
         instance = new ScriptletGenerator();
@@ -148,10 +151,15 @@ public class ScriptletGenerator {
                 }
                 catch(IllegalAccessException accessEx) {
                     // Filler value
-                    val = "/* Couldn't populate value */";
+                    val = "/* Couldn't populate value: IllegalAccessException */";
+                    log.warn("Couldn't populate value for property '" + p.getName() + "'", accessEx);
                 }
                 catch(InvocationTargetException invokEx) {
-                    val = "/* Couldn't populate value */";
+                    val = "/* Couldn't populate value: InvocationTargetException */";
+                    log.warn("Couldn't populate value for property '" + p.getName() + "'", invokEx);
+                }
+                catch(Exception ex) {
+                    val = "/* Couldn't populate value because of exception: " + ex.getMessage() + " */";
                 }
 
                 objCount++;
