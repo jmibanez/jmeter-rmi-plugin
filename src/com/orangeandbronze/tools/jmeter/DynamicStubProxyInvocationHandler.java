@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import java.io.Serializable;
 import org.apache.jorphan.logging.LoggingManager;
 import java.rmi.RemoteException;
+import org.apache.jmeter.util.JMeterUtils;
 
 public class DynamicStubProxyInvocationHandler
     implements InvocationHandler, Serializable
@@ -30,8 +31,8 @@ public class DynamicStubProxyInvocationHandler
             recorder.recordCall(r);
         }
         catch(Exception suppress) {
-            log.warn("Suppressed exception when recording call:", suppress);
-            suppress.printStackTrace();
+            log.error("Suppressed exception when recording call:", suppress);
+            JMeterUtils.reportErrorToUser("Suppressed exception when recording call:" + suppress.getMessage());
         }
     }
 
@@ -54,6 +55,11 @@ public class DynamicStubProxyInvocationHandler
         catch(IllegalAccessException accessEx) {
             log.warn("Illegal access exception during proxy method invocation", accessEx);
             throw new RuntimeException(accessEx);
+        }
+        catch(Exception other) {
+            log.warn("Internal exception: ", other);
+            JMeterUtils.reportErrorToUser("Proxy Exception:" + other.getMessage());
+            throw new RuntimeException(other);
         }
         finally {
             recordCall(r);
