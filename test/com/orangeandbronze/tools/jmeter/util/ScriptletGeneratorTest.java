@@ -8,6 +8,7 @@
 package com.orangeandbronze.tools.jmeter.util;
 
 import junit.framework.TestCase;
+import bsh.Interpreter;
 
 /**
  * Describe class ScriptletGeneratorTest here.
@@ -21,6 +22,7 @@ import junit.framework.TestCase;
 public class ScriptletGeneratorTest extends TestCase {
 
     private ScriptletGenerator inst;
+    private Interpreter bshInterpreter;
 
 
     /**
@@ -34,6 +36,7 @@ public class ScriptletGeneratorTest extends TestCase {
     public void setUp()
         throws Exception {
         inst = ScriptletGenerator.getInstance();
+        bshInterpreter = new Interpreter();
     }
 
 
@@ -49,7 +52,12 @@ public class ScriptletGeneratorTest extends TestCase {
 
         // TODO: Get a beanshell instance, run scriptlet, assert simple.equals(scriptletInstance)
         assertNotNull(scriptlet);
-        assertEquals("com.orangeandbronze.tools.jmeter.util.ScriptletGeneratorTest.SimpleBeanInstance simple = new com.orangeandbronze.tools.jmeter.util.ScriptletGeneratorTest.SimpleBeanInstance();\n// ----------  Introspection values\nint simple_age = 42;\nsimple.setAge(simple_age);\nString simple_name = \"Simple\\nString with \\\"quotes\\\" and a \\u0000 null\";\nsimple.setName(simple_name);\n\n// ----------  Public field values\nchar simple_c = '\\n';\nsimple.c = simple_c;\n", scriptlet);
+
+        bshInterpreter.eval(scriptlet);
+
+        SimpleBeanInstance fromScriptlet = (SimpleBeanInstance) bshInterpreter.get("simple");
+        assertEquals(simple, fromScriptlet);
+
     }
 
     public void testNestedGenerateScriptletForObject()
@@ -82,6 +90,19 @@ public class ScriptletGeneratorTest extends TestCase {
         }
         public void setAge(int argAge) {
             this.age = argAge;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if(!(other instanceof SimpleBeanInstance)) {
+                return false;
+            }
+
+            SimpleBeanInstance otherBean = (SimpleBeanInstance) other;
+
+            return name.equals(otherBean.name)
+                && age == otherBean.age
+                && c == otherBean.c;
         }
     }
 }
