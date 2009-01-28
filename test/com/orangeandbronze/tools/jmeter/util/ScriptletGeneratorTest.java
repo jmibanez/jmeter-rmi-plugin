@@ -9,6 +9,9 @@ package com.orangeandbronze.tools.jmeter.util;
 
 import junit.framework.TestCase;
 import bsh.Interpreter;
+import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
 
 /**
  * Describe class ScriptletGeneratorTest here.
@@ -50,7 +53,6 @@ public class ScriptletGeneratorTest extends TestCase {
 
         String scriptlet = inst.generateScriptletForObject(simple, "simple");
 
-        // TODO: Get a beanshell instance, run scriptlet, assert simple.equals(scriptletInstance)
         assertNotNull(scriptlet);
 
         bshInterpreter.eval(scriptlet);
@@ -58,11 +60,40 @@ public class ScriptletGeneratorTest extends TestCase {
         SimpleBeanInstance fromScriptlet = (SimpleBeanInstance) bshInterpreter.get("simple");
         assertEquals(simple, fromScriptlet);
 
+        System.out.println(scriptlet);
+
     }
 
     public void testNestedGenerateScriptletForObject()
         throws Exception {
-        assertTrue(true);
+        SimpleBeanInstance simple = new SimpleBeanInstance();
+        simple.setName("Simple\nString with \"quotes\" and a \0 null");
+        simple.setAge(42);
+        simple.c = '\n';
+
+        List l = new ArrayList();
+        l.add(simple);
+        
+        SimpleBeanInstance simple2 = new SimpleBeanInstance();
+        simple2.setName("Simple\nString with \"quotes\" and a \0 null");
+        simple2.setAge(42);
+        simple2.c = '\n';
+
+        ComplexBeanInstance complex = new ComplexBeanInstance();
+        complex.setPersonList(l);
+        complex.setOther(simple2);
+
+        String scriptlet = inst.generateScriptletForObject(complex, "complex");
+
+        // TODO: Get a beanshell instance, run scriptlet, assert simple.equals(scriptletInstance)
+        assertNotNull(scriptlet);
+
+        bshInterpreter.eval(scriptlet);
+
+        ComplexBeanInstance fromScriptlet = (ComplexBeanInstance) bshInterpreter.get("complex");
+        assertEquals(complex, fromScriptlet);
+
+        System.out.println(scriptlet);
     }
 
 
@@ -104,5 +135,52 @@ public class ScriptletGeneratorTest extends TestCase {
                 && age == otherBean.age
                 && c == otherBean.c;
         }
+    }
+
+
+    public static class ComplexBeanInstance
+    {
+        private List personList;
+        private Map someMap;
+
+        private SimpleBeanInstance other;
+
+        public ComplexBeanInstance() {
+        }
+
+
+        public final List getPersonList() {
+            return this.personList;
+        }
+        public final void setPersonList(final List argPersonList) {
+            this.personList = argPersonList;
+        }
+
+        public final SimpleBeanInstance getOther() {
+            return this.other;
+        }
+        public final void setOther(final SimpleBeanInstance argOther) {
+            this.other = argOther;
+        }
+
+        public final Map getSomeMap() {
+            return this.someMap;
+        }
+        public final void setSomeMap(final Map argSomeMap) {
+            this.someMap = argSomeMap;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if(!(other instanceof ComplexBeanInstance)) {
+                return false;
+            }
+
+            ComplexBeanInstance otherBean = (ComplexBeanInstance) other;
+
+            return this.other.equals(otherBean.other)
+                && personList.equals(otherBean.personList);
+        }
+
     }
 }
