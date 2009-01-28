@@ -19,6 +19,7 @@
     <pathelement location="${jmeter.home}/lib/ext" />
     <fileset dir="${jmeter.home}/lib/ext">
       <include name="*.jar" />
+      <exclude name="ApacheJMeter_rmi.jar" /> <!-- Don't get ourselves confused! -->
     </fileset>
     <fileset dir="${jmeter.home}/lib">
       <include name="*.jar" />
@@ -86,10 +87,15 @@
           description="Run all JUnit tests">
     <mkdir dir="${build.test.directory}/data" />		
     <junit fork="yes" printsummary="withOutAndErr" forkmode="perBatch" haltonfailure="no" dir="${build.test.directory}/data">
+      <classpath>
+        <path refid="compiler.classpath" />
+        <pathelement path="${build.directory}" />
+        <pathelement path="${build.test.directory}" />
+      </classpath>
       <formatter type="plain" />
       <formatter type="xml" />
       <batchtest todir="${build.test.directory}/data" haltonfailure="no">
-        <fileset dir="${build.test.directory}" />
+        <fileset dir="${build.test.directory}" includes="**/*Test.class" />
       </batchtest>
     </junit>
   </target>

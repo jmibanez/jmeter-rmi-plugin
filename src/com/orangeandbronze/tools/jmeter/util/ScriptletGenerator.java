@@ -21,6 +21,7 @@ import java.util.Properties;
 import java.util.Map;
 import org.apache.jorphan.logging.LoggingManager;
 import org.apache.log.Logger;
+import org.apache.commons.lang.StringEscapeUtils;
 
 /**
  * Describe class ScriptletGenerator here.
@@ -113,11 +114,14 @@ public class ScriptletGenerator {
         scriptlet.append("();\n");
 
         try {
+            scriptlet.append("// ----------  Introspection values\n");
             scriptlet.append(scriptletFromIntrospection(bean, varname));
         }
         catch(IntrospectionException ignored) {
+            ignored.printStackTrace();
         }
-
+        scriptlet.append("\n");
+        scriptlet.append("// ----------  Public field values\n");
         scriptlet.append(scriptletFromPubFields(bean, varname));
 
         return scriptlet.toString();
@@ -310,11 +314,16 @@ public class ScriptletGenerator {
     }
 
     private String characterAsScriptlet(Object value) {
-        return "'" + value + "'";
+        assert value != null : "Value (char) must exist";
+        return "'" + escape(value.toString()) + "'";
     }
 
     private String stringAsScriptlet(String value) {
-        return "\"" + value + "\"";
+        return "\"" + escape(value) + "\"";
+    }
+
+    private String escape(String value) {
+        return StringEscapeUtils.escapeJava(value);
     }
 
     private String unpackArray(String varname, Object arrayBean) {
