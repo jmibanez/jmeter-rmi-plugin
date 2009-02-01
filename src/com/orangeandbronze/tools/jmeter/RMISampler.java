@@ -19,6 +19,11 @@ import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.testelement.property.NullProperty;
 import java.rmi.Remote;
 import com.orangeandbronze.tools.jmeter.gui.RMISamplerGUI;
+import bsh.Interpreter;
+import bsh.EvalError;
+import org.apache.jmeter.threads.JMeterContext;
+import org.apache.jmeter.threads.JMeterContextService;
+import org.apache.jmeter.threads.JMeterVariables;
 
 /**
  * Describe class RMISampler here.
@@ -34,6 +39,8 @@ public class RMISampler extends AbstractSampler {
     public static final String REMOTE_OBJECT_CONFIG = "RMISampler.remote_object_config";
     public static final String METHOD_NAME = "RMISampler.method_name";
     public static final String ARGUMENTS = "RMISampler.method_arguments";
+    public static final String ARG_SCRIPT = "RMISampler.method_arguments_script";
+    public static final String BSH_INTERPRETER = "RMISampler.interpreter";
 
     private static Logger log = Logger.getLogger(RMISampler.class);
 
@@ -70,6 +77,19 @@ public class RMISampler extends AbstractSampler {
         return (RMIRemoteObjectConfig) getProperty(REMOTE_OBJECT_CONFIG).getObjectValue();
     }
 
+    public Interpreter getInterpreter() {
+        JMeterProperty p = getProperty(BSH_INTERPRETER);
+        if(p != null && p.getObjectValue() != null) {
+            return (Interpreter) p.getObjectValue();
+        }
+
+        Interpreter argInterpreter = new Interpreter();
+        setProperty(new ObjectProperty(BSH_INTERPRETER, argInterpreter));
+
+        return argInterpreter;
+    }
+
+
     public void setMethodName(String value) {
         setProperty(METHOD_NAME, value);
         setName(value);
@@ -79,6 +99,23 @@ public class RMISampler extends AbstractSampler {
         return getPropertyAsString(METHOD_NAME);
     }
 
+    public void setArgumentsScript(String value) {
+        setProperty(ARG_SCRIPT, value);
+        try {
+            Interpreter argInterpreter = getInterpreter();
+            log.info("Eval'ing script with Interpreter " + argInterpreter);
+            argInterpreter.eval(value);
+        }
+        catch(EvalError evalErr) {
+            log.info("Error initially evaluating script: " + evalErr.getMessage());
+        }
+    }
+
+    public String getArgumentsScript() {
+        return getPropertyAsString(ARG_SCRIPT);
+    }
+
+
     public Class getGuiClass() {
         return RMISamplerGUI.class;
     }
@@ -87,7 +124,7 @@ public class RMISampler extends AbstractSampler {
     public Object[] getArguments() {
         JMeterProperty p = getProperty(ARGUMENTS);
         if(p == null || p instanceof NullProperty) {
-            return null;
+            return fromArgumentsScript();
         }
 
         ObjectProperty op = (ObjectProperty) getProperty(ARGUMENTS);
@@ -96,6 +133,23 @@ public class RMISampler extends AbstractSampler {
 
     public void setArguments(Object[] arguments) {
         setProperty(new ObjectProperty(ARGUMENTS, arguments));
+    }
+
+    private Object[] fromArgumentsScript() {
+        JMeterContext ctx = JMeterContextService.getContext();
+        JMeterVariables vars = ctx.getVariables();
+        Interpreter argInterpreter = (Interpreter) getProperty(BSH_INTERPRETER).getObjectValue();
+        try {
+            argInterpreter.set("ctx", ctx);
+            argInterpreter.set("vars", vars);
+            argInterpreter.set("sampler", this);
+            return (Object[]) argInterpreter.eval("methodArgs();");
+        }
+        catch(EvalError evalErr) {
+            log.info(getMethodName() + ": Error evaluating script: " + evalErr.getMessage() + "; argInterpreter = " + argInterpreter);
+        }
+
+        return null;
     }
 
     protected SampleResult sample() {

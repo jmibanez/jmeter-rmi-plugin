@@ -11,6 +11,7 @@ import com.orangeandbronze.tools.jmeter.RMISampler;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
 import org.apache.jmeter.gui.util.VerticalPanel;
+import javax.swing.JTextArea;
 
 /**
  * Describe class RMISamplerGUI here.
@@ -24,8 +25,10 @@ import org.apache.jmeter.gui.util.VerticalPanel;
 public class RMISamplerGUI extends AbstractSamplerGui {
 
     private static final String METHODNAME_FIELD = "methodName";
+    private static final String ARGUMENTS_SCRIPT_FIELD = "argumentsScript";
 
     private JTextField methodName;
+    private JTextArea argsScript;
 
     private RMISampler model;
 
@@ -43,6 +46,7 @@ public class RMISamplerGUI extends AbstractSamplerGui {
         super.configure(e);
         model = (RMISampler) e;
         methodName.setText(model.getMethodName());
+        argsScript.setText(model.getArgumentsScript());
     }
 
     public void modifyTestElement(TestElement element) {
@@ -50,6 +54,7 @@ public class RMISamplerGUI extends AbstractSamplerGui {
         if(element instanceof RMISampler) {
             model = (RMISampler) element;
             model.setMethodName(methodName.getText());
+            model.setArgumentsScript(argsScript.getText());
         }
     }
 
@@ -81,13 +86,25 @@ public class RMISamplerGUI extends AbstractSamplerGui {
         JLabel label = new JLabel("Method name");
         label.setLabelFor(methodName);
 
+        argsScript = new JTextArea("");
+        argsScript.setName(ARGUMENTS_SCRIPT_FIELD);
+
+        JLabel argLabel = new JLabel("Arguments script");
+        argLabel.setLabelFor(argsScript);
+
         Box b = Box.createHorizontalBox();
         b.add(label);
         b.add(methodName);
 
+        Box b2 = Box.createVerticalBox();
+        b2.add(argLabel);
+        b2.add(argsScript);
+
         JPanel configPanel = new VerticalPanel();
         configPanel.add(b, BorderLayout.NORTH);
+        configPanel.add(b2, BorderLayout.CENTER);
 
         add(configPanel, BorderLayout.CENTER);
     }
 }
+
