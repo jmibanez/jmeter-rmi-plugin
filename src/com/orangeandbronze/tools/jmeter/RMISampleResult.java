@@ -2,6 +2,12 @@ package com.orangeandbronze.tools.jmeter;
 
 import org.apache.jmeter.samplers.SampleResult;
 import java.lang.reflect.Method;
+import java.io.StringWriter;
+import java.io.PrintWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 
 /**
  * Describe class RMISampleResult here.
@@ -76,12 +82,48 @@ public class RMISampleResult
     }
 
     /**
-     * Sets the value of returnValue
+     * Sets the value of returnValue, as well as constructing sampler response data.
      *
      * @param argReturnValue Value to assign to this.returnValue
      */
     public final void setReturnValue(final Object argReturnValue) {
         this.returnValue = argReturnValue;
+
+        if (returnValue instanceof Throwable) {
+            // Response data == exception stack trace
+            StringWriter sw = new StringWriter();
+            PrintWriter stackTrace = new PrintWriter(sw);
+
+            Throwable t = (Throwable) returnValue;
+            t.printStackTrace(stackTrace);
+
+            this.setResponseData(sw.toString());
+        }
+        else if(returnValue != null) {
+            // Serialize the return value
+            ByteArrayOutputStream bstream = new ByteArrayOutputStream();
+
+            try {
+                ObjectOutputStream objStream = new ObjectOutputStream(bstream);
+                objStream.writeObject(returnValue);
+            }
+            catch(IOException ioEx) {
+                PrintWriter stackTrace = new PrintWriter(new OutputStreamWriter(bstream));
+
+                stackTrace.println("ERR: Couldn't serialize return value:");
+                ioEx.printStackTrace(stackTrace);
+            }
+            finally {
+                try {
+                    bstream.close();
+                }
+                catch(IOException wtf) { assert false : "IOException closing a simple byte array stream. !?!?"; }
+                this.setResponseData(bstream.toByteArray());
+            }
+        }
+        else {
+            this.setResponseData("Returned null or method return type is void");
+        }
     }
 
 }
