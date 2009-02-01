@@ -174,6 +174,7 @@ public class RMISampler extends AbstractSampler {
             Method m = targetClass.getMethod(actualMethodName, argTypes);
 
             res.setMethod(m);
+            res.setSampleLabel(methodName);
             res.setArguments(args);
             res.sampleStart();
             Object retval = m.invoke(target, args);
