@@ -36,6 +36,7 @@ import javax.swing.JLabel;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import org.apache.jmeter.gui.util.VerticalPanel;
+import javax.swing.JTextArea;
 
 /**
  * Describe class NativeRmiProxyControllerGui here.
@@ -51,6 +52,7 @@ public class NativeRmiProxyControllerGui extends LogicControllerGui implements K
     private static final String TARGETNAME_FIELD = "targetRmiName";
     private static final String PROXYNAMINGPORT_FIELD = "proxyNamingPort";
     private static final String PROXYPORT_FIELD = "proxyPort";
+    private static final String BINDINGSCRIPT_FIELD = "bindingScript";
 
     private static final String START = "start";
     private static final String STOP = "stop";
@@ -60,6 +62,7 @@ public class NativeRmiProxyControllerGui extends LogicControllerGui implements K
     private JTextField targetRmiName;
     private JTextField proxyNamingPort;
     private JTextField proxyPort;
+    private JTextArea bindingScript;
 
     private JButton start;
     private JButton stop;
@@ -230,6 +233,7 @@ public class NativeRmiProxyControllerGui extends LogicControllerGui implements K
             model.setTargetRmiName(targetRmiName.getText());
             model.setProxyNamingPort(proxyNamingPort.getText());
             model.setProxyPort(proxyPort.getText());
+            model.setBindingScript(bindingScript.getText());
         }
     }
 
@@ -244,6 +248,7 @@ public class NativeRmiProxyControllerGui extends LogicControllerGui implements K
         targetRmiName.setText(model.getTargetRmiName());
         proxyNamingPort.setText(Integer.toString(model.getProxyNamingPort()));
         proxyPort.setText(Integer.toString(model.getProxyPort()));
+        bindingScript.setText(model.getBindingScript());
     }
 
 
@@ -296,8 +301,19 @@ public class NativeRmiProxyControllerGui extends LogicControllerGui implements K
         configBox.add(portLabel);
         configBox.add(proxyPort);
 
+        bindingScript = new JTextArea("");
+        bindingScript.setName(BINDINGSCRIPT_FIELD);
+
+        JLabel bLabel = new JLabel("Binding Script");
+        bLabel.setLabelFor(bindingScript);
+
+        Box bindScriptBox = Box.createVerticalBox();
+        bindScriptBox.add(bLabel);
+        bindScriptBox.add(bindingScript);
+
         JPanel configPanel = new VerticalPanel();
         configPanel.add(configBox, BorderLayout.NORTH);
+        configPanel.add(bindScriptBox, BorderLayout.CENTER);
         add(configPanel, BorderLayout.CENTER);
 
         start = new JButton("Start");

@@ -54,6 +54,8 @@ public class NativeRmiProxyController extends GenericController {
     public static final String PROXY_NAMING_PORT = "RmiProxy.proxy_naming_port";
     public static final String PROXY_PORT = "RmiProxy.proxy_port";
 
+    public static final String BINDING_SCRIPT = "RmiProxy.binding_script";
+
     private static Logger log = LoggingManager.getLoggerForClass(); // Logger.getLogger(NativeRmiProxyController.class);
 
     private JMeterTreeNode target;
@@ -112,6 +114,14 @@ public class NativeRmiProxyController extends GenericController {
 
     public void setProxyPort(String value) {
         setProperty(PROXY_PORT, value);
+    }
+
+    public String getBindingScript() {
+        return getPropertyAsString(BINDING_SCRIPT);
+    }
+
+    public void setBindingScript(String script) {
+        setProperty(new StringProperty(BINDING_SCRIPT, script));
     }
 
 
@@ -239,6 +249,7 @@ public class NativeRmiProxyController extends GenericController {
         proxy = new NativeRmiProxy(getTargetRmiName());
         proxy.setServerPort(getProxyPort());
         proxy.setNamingPort(getProxyNamingPort());
+        proxy.setBindingScript(getBindingScript());
 
         RmiSamplerGeneratorMethodRecorder recorder = new RmiSamplerGeneratorMethodRecorder();
         recorder.setTarget(this);

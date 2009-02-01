@@ -31,6 +31,9 @@ import com.orangeandbronze.tools.jmeter.impl.SimpleLoggingMethodRecorder;
 import com.orangeandbronze.tools.jmeter.impl.NullMethodRecorder;
 import java.rmi.server.UnicastRemoteObject;
 import org.apache.jorphan.logging.LoggingManager;
+import org.apache.jmeter.util.JMeterUtils;
+import org.apache.jmeter.util.BeanShellInterpreter;
+import org.apache.jorphan.util.JMeterException;
 
 /**
  * <p>A proxy for RMI remote objects.</p>
@@ -47,6 +50,8 @@ public class NativeRmiProxy
     private String targetRmiName;
     private String actualObjectName;
     private String proxyObjectName;
+
+    private String bindingScript;
 
     private Object stubInstance;
     private DynamicStubProxyInvocationHandler handler;
@@ -90,6 +95,14 @@ public class NativeRmiProxy
         this.namingPort = namingPort;
     }
 
+    public String getBindingScript() {
+        return bindingScript;
+    }
+
+    public void setBindingScript(String bindingScript) {
+        this.bindingScript = bindingScript;
+    }
+
     public MethodRecorder getMethodRecorder() {
         return recorder;
     }
@@ -109,6 +122,30 @@ public class NativeRmiProxy
 
     private static Registry createOrLocateRegistry(int port) throws RemoteException {
         return LocateRegistry.createRegistry(port);
+    }
+
+    private void runBindingScript(Object serverStub, Object proxy) {
+        BeanShellInterpreter bshInterpreter = null;
+        try {
+            String initFileName = JMeterUtils.getProperty("rmiProxy.bindScriptInitFile");
+            bshInterpreter = new BeanShellInterpreter(initFileName, log);
+        } catch (ClassNotFoundException e) {
+        }
+
+        if(bshInterpreter != null) {
+            try {
+                bshInterpreter.set("FileName", "proxy-binding-script");
+                bshInterpreter.set("proxy", proxy);
+                bshInterpreter.set("serverStub", serverStub);
+                bshInterpreter.set("handler", handler);
+
+                bshInterpreter.eval(bindingScript);
+            }
+            catch(JMeterException e) {
+                log.warn("Couldn't execute BeanShell scriptlet for binding script: ", e);
+                e.printStackTrace();
+            }
+        }
     }
 
 
@@ -145,6 +182,7 @@ public class NativeRmiProxy
 
             // Register ourselves on our naming service
             registerProxy(UnicastRemoteObject.exportObject((Remote) proxy, serverPort));
+            runBindingScript(stubInstance, proxy);
             
         }
         catch(RemoteException remoteEx) {
