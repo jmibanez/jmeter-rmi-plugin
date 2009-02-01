@@ -57,9 +57,6 @@ public class RMIRemoteObjectConfig
     }
 
     public Class[] getArgumentTypes(String methodName) {
-        if(methodName.equals("setCount")) {
-            return new Class[] { int.class };
-        }
         return methodTypesMap.get(methodName);
     }
 
