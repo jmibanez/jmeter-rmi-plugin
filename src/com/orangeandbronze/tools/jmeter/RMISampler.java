@@ -84,7 +84,14 @@ public class RMISampler extends AbstractSampler {
         }
 
         Interpreter argInterpreter = new Interpreter();
-        setProperty(new ObjectProperty(BSH_INTERPRETER, argInterpreter));
+        setTemporary(new ObjectProperty(BSH_INTERPRETER, argInterpreter));
+
+        try {
+            argInterpreter.eval(getArgumentsScript());
+        }
+        catch(EvalError evalErr) {
+            log.info("Error initially evaluating script: " + evalErr.getMessage());
+        }
 
         return argInterpreter;
     }
@@ -138,7 +145,7 @@ public class RMISampler extends AbstractSampler {
     private Object[] fromArgumentsScript() {
         JMeterContext ctx = JMeterContextService.getContext();
         JMeterVariables vars = ctx.getVariables();
-        Interpreter argInterpreter = (Interpreter) getProperty(BSH_INTERPRETER).getObjectValue();
+        Interpreter argInterpreter = getInterpreter();
         try {
             argInterpreter.set("ctx", ctx);
             argInterpreter.set("vars", vars);
@@ -147,6 +154,7 @@ public class RMISampler extends AbstractSampler {
         }
         catch(EvalError evalErr) {
             log.info(getMethodName() + ": Error evaluating script: " + evalErr.getMessage() + "; argInterpreter = " + argInterpreter);
+            evalErr.printStackTrace();
         }
 
         return null;
