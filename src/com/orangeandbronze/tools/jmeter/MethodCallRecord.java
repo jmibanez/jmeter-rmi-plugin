@@ -36,6 +36,11 @@ public class MethodCallRecord
         return method;
     }
 
+    public Object[] recreateArguments() {
+        unpackArgs();
+        return args;
+    }
+
     public Object[] getArguments() {
         return args;
     }

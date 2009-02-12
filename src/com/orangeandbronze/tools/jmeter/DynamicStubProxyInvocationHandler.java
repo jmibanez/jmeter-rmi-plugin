@@ -40,6 +40,10 @@ public class DynamicStubProxyInvocationHandler
         log.info("Calling method " + m.getName());
         MethodCallRecord r = new MethodCallRecord(m, args);
         log.info("Record created");
+
+        // Classes might suddenly change state under us when we pack
+        // args; recreate them from scratch
+        args = r.recreateArguments();
         try {
             Object returnValue = m.invoke(stubInstance, args);
             r.returned(returnValue);
