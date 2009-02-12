@@ -72,15 +72,7 @@ public class NativeRmiProxyController extends GenericController {
 
     public synchronized void deliverSampler(RMISampler s, MethodCallRecord record) {
         JMeterTreeNode myTarget = findTargetControllerNode();
-
-        // Create bsh preprocessor node for arguments
-        BeanShellPreProcessor argsPreProc = new BeanShellPreProcessor();
-        argsPreProc.setProperty(TestElement.GUI_CLASS, TestBeanGUI.class.getName());
-        argsPreProc.setName("Arguments for " + record.getMethod());
-
-        TestElement[] subConfigs = new TestElement[] { argsPreProc };
-
-        placeSampler(s, subConfigs, myTarget, record);
+        placeSampler(s, null, myTarget, record);
     }
 
 
@@ -132,48 +124,6 @@ public class NativeRmiProxyController extends GenericController {
     public void setTarget(JMeterTreeNode target) {
         this.target = target;
     }
-
-    private String createArgumentsScript(MethodCallRecord record) {
-        log.info("Creating script for method call record");
-
-        Class[] argTypes = record.getArgumentTypes();
-        Object[] args = record.getArguments();
-
-        if(argTypes == null || argTypes.length == 0) {
-            return "// No arguments";
-        }
-
-        StringBuilder sb = new StringBuilder();
-        for(int i = 0; i < args.length; i++) {
-            if(args[i] == null) {
-                continue;
-            }
-
-            sb.append(ScriptletGenerator.getInstance()
-                      .generateScriptletForObject(args[i], "args" + i, argTypes[i]));
-        }
-
-        sb.append("Object[] args = new Object[] { ");
-        for(int i = 0; i < args.length; i++) {
-            if(args[i] != null) {
-                sb.append("args");
-                sb.append(i);
-            }
-            else {
-                sb.append("null");
-            }
-
-            if(i != args.length - 1) {
-                sb.append(", ");
-            }
-        }
-        sb.append(" };\n");
-
-        sb.append("com.orangeandbronze.tools.jmeter.util.ArgumentsUtil.setArguments(sampler, args);");
-        sb.append("\n\n");
-        return sb.toString();
-    }
-
 
     public Class getGuiClass() {
         return com.orangeandbronze.tools.jmeter.gui.NativeRmiProxyControllerGui.class;
@@ -233,11 +183,6 @@ public class NativeRmiProxyController extends GenericController {
             JMeterTreeNode newNode = treeModel.addComponent(sampler, myTarget);
             for (int i = 0; subConfigs != null && i < subConfigs.length; i++) {
                 treeModel.addComponent(subConfigs[i], newNode);
-                if(subConfigs[i] instanceof BeanShellPreProcessor) {
-                    BeanShellPreProcessor argsPreProc = (BeanShellPreProcessor) subConfigs[i];
-                    argsPreProc.setFilename(null);
-                    argsPreProc.setProperty("script", createArgumentsScript(record));
-                }
             }
 
         } catch (IllegalUserActionException e) {

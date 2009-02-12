@@ -14,6 +14,10 @@ import com.orangeandbronze.tools.jmeter.NativeRmiProxyController;
 import com.orangeandbronze.tools.jmeter.RMISampler;
 import org.apache.jmeter.testelement.TestElement;
 import com.orangeandbronze.tools.jmeter.gui.RMISamplerGUI;
+import com.orangeandbronze.tools.jmeter.RMIRemoteObjectConfig;
+import com.orangeandbronze.tools.jmeter.util.ScriptletGenerator;
+import org.apache.jorphan.logging.LoggingManager;
+import org.apache.log.Logger;
 
 /**
  * Describe class RmiSamplerGeneratorMethodRecorder here.
@@ -26,6 +30,8 @@ import com.orangeandbronze.tools.jmeter.gui.RMISamplerGUI;
  */
 public class RmiSamplerGeneratorMethodRecorder
     implements MethodRecorder {
+
+    private static Logger log = LoggingManager.getLoggerForClass();
 
     private NativeRmiProxyController target;
 
@@ -57,6 +63,46 @@ public class RmiSamplerGeneratorMethodRecorder
         this.target = argTarget;
     }
 
+    private String createArgumentsScript(MethodCallRecord record) {
+        log.info("Creating script for method call record");
+
+        Class[] argTypes = record.getArgumentTypes();
+        Object[] args = record.getArguments();
+
+        if(argTypes == null || argTypes.length == 0) {
+            return "// No arguments";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("methodArgs ( ) {\n");
+        for(int i = 0; i < args.length; i++) {
+            if(args[i] == null) {
+                continue;
+            }
+
+            sb.append(ScriptletGenerator.getInstance()
+                      .generateScriptletForObject(args[i], "args" + i, argTypes[i]));
+        }
+
+        sb.append("Object[] args = new Object[] { ");
+        for(int i = 0; i < args.length; i++) {
+            if(args[i] != null) {
+                sb.append("args");
+                sb.append(i);
+            }
+            else {
+                sb.append("null");
+            }
+
+            if(i != args.length - 1) {
+                sb.append(", ");
+            }
+        }
+        sb.append(" };\n");
+        sb.append("return args;");
+        sb.append("\n}\n");
+        return sb.toString();
+    }
 
 
     // Implementation of com.orangeandbronze.tools.jmeter.MethodRecorder
@@ -69,10 +115,10 @@ public class RmiSamplerGeneratorMethodRecorder
      */
     public void recordCall(final MethodCallRecord r)
         throws RemoteException {
-
         RMISampler sampler = new RMISampler();
         sampler.setProperty(TestElement.GUI_CLASS, RMISamplerGUI.class.getName());
         sampler.setMethodName(r.getMethod());
+        sampler.setArgumentsScript(createArgumentsScript(r));
         target.deliverSampler(sampler, r);
     }
 
