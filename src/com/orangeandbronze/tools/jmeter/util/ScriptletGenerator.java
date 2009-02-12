@@ -36,19 +36,30 @@ public class ScriptletGenerator {
 
     private static Logger log = LoggingManager.getLoggerForClass();
     private static ScriptletGenerator instance = null;
+
     static {
-        instance = new ScriptletGenerator();
+        instance = new ScriptletGenerator(GeneratedType.BOTH);
     }
+
+
+    public static enum GeneratedType { PUBLIC_FIELDS_ONLY, INTROSPECTION_ONLY, BOTH }
+
+    private GeneratedType generationType;
 
     /**
      * Creates a new <code>ScriptletGenerator</code> instance.
      *
      */
-    ScriptletGenerator() {
+    ScriptletGenerator(GeneratedType type) {
+        this.generationType = type;
     }
 
     public static ScriptletGenerator getInstance() {
         return instance;
+    }
+
+    public static ScriptletGenerator getCustomInstance(GeneratedType generationType) {
+        return new ScriptletGenerator(generationType);
     }
 
 
@@ -265,24 +276,30 @@ public class ScriptletGenerator {
         scriptlet.append(beanType.getCanonicalName());
         scriptlet.append("();\n");
 
-        try {
-            String[] scr = scriptletFromIntrospection(bean, varname);
-            //decl.append("// ----------  Introspection values\n");
+        if(generationType.equals(GeneratedType.INTROSPECTION_ONLY)
+           || generationType.equals(GeneratedType.BOTH)) {
+            try {
+                String[] scr = scriptletFromIntrospection(bean, varname);
+                //decl.append("// ----------  Introspection values\n");
+                decl.append(scr[0]);
+
+                scriptlet.append(scr[1]);
+            }
+            catch(IntrospectionException ignored) {
+                ignored.printStackTrace();
+            }
+        }
+
+        if(generationType.equals(GeneratedType.PUBLIC_FIELDS_ONLY)
+           || generationType.equals(GeneratedType.BOTH)) {
+            String[] scr = scriptletFromPubFields(bean, varname); 
+            decl.append("\n");
+            //decl.append("// ----------  Public field values\n");
             decl.append(scr[0]);
 
+            scriptlet.append("\n");
             scriptlet.append(scr[1]);
         }
-        catch(IntrospectionException ignored) {
-            ignored.printStackTrace();
-        }
-
-        String[] scr = scriptletFromPubFields(bean, varname); 
-        decl.append("\n");
-        //decl.append("// ----------  Public field values\n");
-        decl.append(scr[0]);
-
-        scriptlet.append("\n");
-        scriptlet.append(scr[1]);
 
         return new String[] { decl.toString(), scriptlet.toString() };
     }
