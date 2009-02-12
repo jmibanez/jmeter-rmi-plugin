@@ -12,6 +12,7 @@ import javax.swing.JTextField;
 import javax.swing.JLabel;
 import org.apache.jmeter.gui.util.VerticalPanel;
 import javax.swing.JTextArea;
+import javax.swing.JCheckBox;
 
 /**
  * Describe class RMISamplerGUI here.
@@ -29,6 +30,7 @@ public class RMISamplerGUI extends AbstractSamplerGui {
 
     private JTextField methodName;
     private JTextArea argsScript;
+    private JCheckBox ignExceptions;
 
     private RMISampler model;
 
@@ -47,6 +49,7 @@ public class RMISamplerGUI extends AbstractSamplerGui {
         model = (RMISampler) e;
         methodName.setText(model.getMethodName());
         argsScript.setText(model.getArgumentsScript());
+        ignExceptions.setSelected(model.isExceptionsIgnored());
     }
 
     public void modifyTestElement(TestElement element) {
@@ -55,6 +58,7 @@ public class RMISamplerGUI extends AbstractSamplerGui {
             model = (RMISampler) element;
             model.setMethodName(methodName.getText());
             model.setArgumentsScript(argsScript.getText());
+            model.setExceptionsIgnored(ignExceptions.isSelected());
         }
     }
 
@@ -92,9 +96,12 @@ public class RMISamplerGUI extends AbstractSamplerGui {
         JLabel argLabel = new JLabel("Arguments script");
         argLabel.setLabelFor(argsScript);
 
+        ignExceptions = new JCheckBox("Ignore Exceptions");
+
         Box b = Box.createHorizontalBox();
         b.add(label);
         b.add(methodName);
+        b.add(ignExceptions);
 
         Box b2 = Box.createVerticalBox();
         b2.add(argLabel);

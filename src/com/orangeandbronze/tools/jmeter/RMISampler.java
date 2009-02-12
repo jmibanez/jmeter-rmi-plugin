@@ -42,6 +42,8 @@ public class RMISampler extends AbstractSampler {
     public static final String ARG_SCRIPT = "RMISampler.method_arguments_script";
     public static final String BSH_INTERPRETER = "RMISampler.interpreter";
 
+    public static final String IGNORE_EXCEPTIONS = "RMISampler.ignore_exceptions";
+
     private static Logger log = Logger.getLogger(RMISampler.class);
 
 
@@ -122,6 +124,14 @@ public class RMISampler extends AbstractSampler {
         return getPropertyAsString(ARG_SCRIPT);
     }
 
+    public void setExceptionsIgnored(boolean ign) {
+        setProperty(IGNORE_EXCEPTIONS, ign);
+    }
+
+    public boolean isExceptionsIgnored() {
+        return getPropertyAsBoolean(IGNORE_EXCEPTIONS);
+    }
+
 
     public Class getGuiClass() {
         return RMISamplerGUI.class;
@@ -184,12 +194,14 @@ public class RMISampler extends AbstractSampler {
             res.setMethod(m);
             res.setSampleLabel(methodName);
             res.setArguments(args);
+
+            // Assume success
+            res.setSuccessful(true);
             res.sampleStart();
             Object retval = m.invoke(target, args);
 
             res.sampleEnd();
             res.setReturnValue(retval);
-            res.setSuccessful(true);
         }
         catch(NoSuchMethodException noMethod) {
             throw new RuntimeException(noMethod);
@@ -202,7 +214,10 @@ public class RMISampler extends AbstractSampler {
             // FIXME: Add to result
             res.sampleEnd();
             res.setReturnValue(actualEx);
-            res.setSuccessful(false);
+
+            if(!isExceptionsIgnored()) {
+                res.setSuccessful(false);
+            }
         }
 
         return res;
