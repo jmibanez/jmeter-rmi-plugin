@@ -8,6 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.ObjectInputStream;
 
 /**
  * Describe class RMISampleResult here.
@@ -23,6 +24,9 @@ public class RMISampleResult
 
     private Method method;
     private Object[] arguments;
+
+    private transient String packedMethodName;
+    private transient String classOwnerName;
 
     private Object returnValue;
 
@@ -42,6 +46,9 @@ public class RMISampleResult
      * @return the value of method
      */
     public final Method getMethod() {
+        if(method == null && packedMethodName != null) {
+            // TODO: Lookup and bind method
+        }
         return this.method;
     }
 
@@ -124,6 +131,66 @@ public class RMISampleResult
         else {
             this.setResponseData("Returned null or method return type is void");
         }
+    }
+
+
+    private void writeObject(ObjectOutputStream out)
+        throws IOException {
+        out.writeUTF("RMISampleResult");
+        if(method != null) {
+            out.writeUTF(method.getClass().getCanonicalName());
+            out.writeUTF("\nM:");
+            out.writeUTF(MethodCallRecord.constructMethodName(method.getName(), method.getParameterTypes()));
+        }
+        else {
+            out.writeUTF(classOwnerName);
+            out.writeUTF("\nM:");
+            out.writeUTF(packedMethodName);
+        }
+        out.writeUTF("\nA:");
+        if(arguments != null) {
+            out.writeInt(arguments.length);
+            for(Object arg : arguments) {
+                out.writeObject(arg);
+            }
+        }
+        else {
+            out.writeInt(0);
+        }
+        out.writeUTF("EndSample");
+    }
+
+    private void readObject(ObjectInputStream in) 
+        throws IOException {
+        String head = in.readUTF();
+        if(!"RMISampleResult".equals(head)) {
+            throw new IllegalStateException("Invalid state in input stream: Object header not found: expected RMISampleResult, got " + head);
+        }
+
+        classOwnerName = in.readUTF();
+        String sep = in.readUTF();
+        packedMethodName = in.readUTF();
+        String sep2 = in.readUTF();
+
+
+        int argCount = in.readInt();
+
+        if(argCount > 0) {
+            arguments = new Object[argCount];
+            for(int i = 0; i < argCount; i++) {
+                try {
+                    arguments[i] = in.readObject();
+                }
+                catch(ClassNotFoundException cnfe) {
+                    throw new IllegalStateException("Couldn't deserialize arguments:", cnfe);
+                }
+                catch(NoClassDefFoundError classDefErr) {
+                    throw new IllegalStateException("Couldn't deserialize arguments:", classDefErr);
+                }
+            }
+        }
+
+        String footer = in.readUTF();
     }
 
 }
