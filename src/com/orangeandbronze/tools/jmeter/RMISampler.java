@@ -86,7 +86,9 @@ public class RMISampler extends AbstractSampler {
         }
 
         Interpreter argInterpreter = new Interpreter();
-        setTemporary(new ObjectProperty(BSH_INTERPRETER, argInterpreter));
+        JMeterProperty bshProp = new ObjectProperty(BSH_INTERPRETER, argInterpreter);
+        setProperty(bshProp);
+        setTemporary(bshProp);
 
         try {
             argInterpreter.eval(getArgumentsScript());
