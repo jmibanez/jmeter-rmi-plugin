@@ -232,4 +232,9 @@ public class RMISampler extends AbstractSampler {
 
         return methodNameAndArgs;
     }
+
+
+    public String toString() {
+        return super.toString() +  ": " +  getMethodName();
+    }
 }
