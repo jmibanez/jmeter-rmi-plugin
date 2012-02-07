@@ -16,6 +16,7 @@ import java.beans.IntrospectionException;
 import java.util.Collection;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Array;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.Map;
@@ -45,6 +46,8 @@ public class ScriptletGenerator {
     public static enum GeneratedType { PUBLIC_FIELDS_ONLY, INTROSPECTION_ONLY, BOTH }
 
     private GeneratedType generationType;
+
+    private Map<Object,String> generatedObjects = new HashMap<Object,String>();
 
     /**
      * Creates a new <code>ScriptletGenerator</code> instance.
@@ -263,13 +266,22 @@ public class ScriptletGenerator {
             return new String[] { "String " + varname + " = " + stringAsScriptlet((String) bean) + ";\n", "" };
         }
 
+        String typeSignature = beanType.getCanonicalName();
+
+        if(generatedObjects.containsKey(bean)) {
+            String prevVar = generatedObjects.get(bean);
+            return new String[] { "", typeSignature + " " + varname + " = " + prevVar + "; "};
+        }
+
+        generatedObjects.put(bean, varname);
+
         // Object: introspect
         // Assume bean follows standard JavaBean conventions,
         // fallback on using public fields
 
         StringBuilder decl = new StringBuilder();
         StringBuilder scriptlet = new StringBuilder();
-        scriptlet.append(beanType.getCanonicalName());
+        scriptlet.append(typeSignature);
         scriptlet.append(" ");
         scriptlet.append(varname);
         scriptlet.append(" = new ");
