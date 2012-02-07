@@ -101,6 +101,7 @@ public class ScriptletGeneratorTest extends TestCase {
         CyclicClass parent = new CyclicClass();
         CyclicClassChild child = new CyclicClassChild();
         child.parent = parent;
+        child.name = "child";
 
         parent.children.add(child);
 
@@ -208,10 +209,30 @@ public class ScriptletGeneratorTest extends TestCase {
     public static class CyclicClass
     {
         public List<CyclicClassChild> children = new ArrayList<CyclicClassChild>();
+
+        @Override
+        public boolean equals(Object other) {
+            if(!(other instanceof CyclicClass)) {
+                return false;
+            }
+
+            CyclicClass otherCyclicClass = (CyclicClass) other;
+            return children.equals(otherCyclicClass.children);
+        }
     }
 
     public static class CyclicClassChild
     {
         public CyclicClass parent;
+        public String name;
+
+        public boolean equals(Object other) {
+            if(!(other instanceof CyclicClassChild)) {
+                return false;
+            }
+
+            CyclicClassChild otherCyclicClassChild = (CyclicClassChild) other;
+            return (name == null && otherCyclicClassChild.name == null) || name.equals(otherCyclicClassChild.name);
+        }
     }
 }
