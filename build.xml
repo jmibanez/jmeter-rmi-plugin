@@ -86,7 +86,7 @@
   <target name="test-all" depends="build-rmi-tests" 
           description="Run all JUnit tests">
     <mkdir dir="${build.test.directory}/data" />		
-    <junit fork="yes" printsummary="withOutAndErr" forkmode="perBatch" haltonfailure="no" dir="${build.test.directory}/data">
+    <junit fork="yes" printsummary="withOutAndErr" forkmode="perBatch" haltonfailure="yes" dir="${build.test.directory}/data">
       <classpath>
         <path refid="compiler.classpath" />
         <pathelement path="${build.directory}" />
@@ -94,7 +94,7 @@
       </classpath>
       <formatter type="plain" />
       <formatter type="xml" />
-      <batchtest todir="${build.test.directory}/data" haltonfailure="no">
+      <batchtest todir="${build.test.directory}/data" haltonfailure="yes">
         <fileset dir="${build.test.directory}" includes="**/*Test.class" />
       </batchtest>
     </junit>

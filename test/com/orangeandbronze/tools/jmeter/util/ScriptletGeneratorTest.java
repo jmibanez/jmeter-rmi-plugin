@@ -96,6 +96,27 @@ public class ScriptletGeneratorTest extends TestCase {
         System.out.println(scriptlet);
     }
 
+    public void testGenerateScriptletFromCyclicClassRef()
+        throws Exception {
+        CyclicClass parent = new CyclicClass();
+        CyclicClassChild child = new CyclicClassChild();
+        child.parent = parent;
+
+        parent.children.add(child);
+
+        String scriptlet = inst.generateScriptletForObject(parent, "parent");
+
+        assertNotNull(scriptlet);
+
+        bshInterpreter.eval(scriptlet);
+
+        CyclicClass fromScriptlet = (CyclicClass) bshInterpreter.get("parent");
+        assertEquals(parent, fromScriptlet);
+        assertEquals(parent.children, fromScriptlet.children);
+
+        System.out.println(scriptlet);
+    }
+
 
     public static class SimpleBeanInstance
     {
@@ -182,5 +203,15 @@ public class ScriptletGeneratorTest extends TestCase {
                 && personList.equals(otherBean.personList);
         }
 
+    }
+
+    public static class CyclicClass
+    {
+        public List<CyclicClassChild> children = new ArrayList<CyclicClassChild>();
+    }
+
+    public static class CyclicClassChild
+    {
+        public CyclicClass parent;
     }
 }
