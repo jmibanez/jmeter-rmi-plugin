@@ -24,6 +24,9 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
+import java.util.HashMap;
+import java.util.Map;
+
 //import org.apache.log4j.Logger;
 import org.apache.log.Logger;
 
@@ -44,7 +47,9 @@ import org.apache.jorphan.util.JMeterException;
  * @author <a href="mailto:jm@orangeandbronze.com">JM Ibanez</a>
  * @version 1.0
  */
-public class NativeRmiProxy {
+public class NativeRmiProxy
+    implements InstanceRegistry {
+
     private String targetRmiName;
     private String actualObjectName;
     private String proxyObjectName;
@@ -63,6 +68,8 @@ public class NativeRmiProxy {
     private static Logger log = LoggingManager.getLoggerForClass(); // Logger.getLogger(NativeRmiProxy.class);
 
     private MethodRecorder recorder;
+
+    private Map<String, Remote> instanceRegistry;
 
     /**
      * Creates a new <code>NativeRmiProxy</code> instance.
@@ -150,6 +157,9 @@ public class NativeRmiProxy {
 
 
     private void setupProxy() {
+        // Create instance registry
+        instanceRegistry = new HashMap<String, Remote>();
+
         try {
             // Create naming registry
             this.registry = createOrLocateRegistry(namingPort);
@@ -179,6 +189,7 @@ public class NativeRmiProxy {
             handler = new DynamicStubProxyInvocationHandler(stubInstance, r);
 
             proxy = (Remote) spCons.newInstance(new Object[] { handler });
+            this.registerRootRmiInstance((Remote) proxy);
 
             // Register ourselves on our naming service
             registerProxy(UnicastRemoteObject.exportObject(proxy, serverPort));
@@ -268,5 +279,26 @@ public class NativeRmiProxy {
     public static void main(String[] args) {
         //String targetRmiName, String stubClass
         new NativeRmiProxy("//10.10.1.123:1200/server").start();
+    }
+
+
+    @Override
+    public final void registerRootRmiInstance(final Remote instance)
+        throws RemoteException {
+        instanceRegistry.put(null, instance);
+    }
+
+    @Override
+    public final String registerRmiInstance(final String handle,
+                                            final Remote instance)
+        throws RemoteException {
+        instanceRegistry.put(handle, instance);
+        return handle;
+    }
+
+    @Override
+    public final Remote getTarget(final String handle)
+        throws RemoteException {
+        return instanceRegistry.get(handle);
     }
 }
