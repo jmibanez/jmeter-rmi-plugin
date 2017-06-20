@@ -128,7 +128,7 @@ public class NativeRmiProxy
         BeanShellInterpreter bshInterpreter = null;
         try {
             String initFileName = JMeterUtils.getProperty("rmiProxy.bindScriptInitFile");
-            bshInterpreter = new BeanShellInterpreter(initFileName, log);
+            bshInterpreter = new BeanShellInterpreter();
         } catch (ClassNotFoundException e) {
         }
 
