@@ -10,7 +10,8 @@ package com.orangeandbronze.tools.jmeter.impl;
 import java.rmi.server.UnicastRemoteObject;
 import com.orangeandbronze.tools.jmeter.MethodRecorder;
 import com.orangeandbronze.tools.jmeter.MethodCallRecord;
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import java.rmi.RemoteException;
 import java.io.Serializable;
 
@@ -27,7 +28,7 @@ public class SimpleLoggingMethodRecorder
     extends UnicastRemoteObject 
     implements MethodRecorder, Serializable
 {
-    private static Logger log = Logger.getLogger(SimpleLoggingMethodRecorder.class);
+    private static Log log = LogFactory.getLog(SimpleLoggingMethodRecorder.class);
 
     public SimpleLoggingMethodRecorder()
         throws RemoteException {

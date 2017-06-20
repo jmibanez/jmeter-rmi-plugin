@@ -10,7 +10,6 @@ package com.orangeandbronze.tools.jmeter.impl;
 import java.rmi.server.UnicastRemoteObject;
 import com.orangeandbronze.tools.jmeter.MethodRecorder;
 import com.orangeandbronze.tools.jmeter.MethodCallRecord;
-import org.apache.log4j.Logger;
 import java.rmi.RemoteException;
 import java.io.Serializable;
 

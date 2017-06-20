@@ -10,7 +10,9 @@ import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.testelement.property.TestElementProperty;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.rmi.server.RemoteObject;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
@@ -44,7 +46,7 @@ public class RMISampler extends AbstractSampler {
 
     public static final String IGNORE_EXCEPTIONS = "RMISampler.ignore_exceptions";
 
-    private static Logger log = Logger.getLogger(RMISampler.class);
+    private static Log log = LogFactory.getLog(RMISampler.class);
 
 
     /**

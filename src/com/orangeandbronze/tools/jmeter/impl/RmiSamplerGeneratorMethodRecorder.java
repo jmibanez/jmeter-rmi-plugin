@@ -16,8 +16,8 @@ import org.apache.jmeter.testelement.TestElement;
 import com.orangeandbronze.tools.jmeter.gui.RMISamplerGUI;
 import com.orangeandbronze.tools.jmeter.RMIRemoteObjectConfig;
 import com.orangeandbronze.tools.jmeter.util.ScriptletGenerator;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Describe class RmiSamplerGeneratorMethodRecorder here.
@@ -31,7 +31,7 @@ import org.apache.log.Logger;
 public class RmiSamplerGeneratorMethodRecorder
     implements MethodRecorder {
 
-    private static Logger log = LoggingManager.getLoggerForClass();
+    private static Log log = LogFactory.getLog(RmiSamplerGeneratorMethodRecorder.class);
 
     private NativeRmiProxyController target;
 

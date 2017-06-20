@@ -20,9 +20,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.Map;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Describe class ScriptletGenerator here.
@@ -35,7 +35,7 @@ import org.apache.commons.lang.StringEscapeUtils;
  */
 public class ScriptletGenerator {
 
-    private static Logger log = LoggingManager.getLoggerForClass();
+    private static Log log = LogFactory.getLog(ScriptletGenerator.class);
     private static ScriptletGenerator instance = null;
 
     static {
