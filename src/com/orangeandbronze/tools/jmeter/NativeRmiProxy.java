@@ -175,22 +175,10 @@ public class NativeRmiProxy
             MethodRecorder r = getMethodRecorder();
 
             // Build dynamic stub proxy
-            Class stub = stubInstance.getClass();
-            if(stub == null) {
-                throw new RuntimeException("Couldn't find stub class");
-            }
-
-            log.debug("Stub class: " + stub.getName());
-
-            Class[] stubInterfaces = stub.getInterfaces();
-            Class stubProxyClass = Proxy.getProxyClass(getClass().getClassLoader(),
-                                                       stubInterfaces);
-            Constructor spCons = stubProxyClass.getConstructor(new Class[] { InvocationHandler.class });
             handler = new DynamicStubProxyInvocationHandler(this, stubInstance,
                                                             null, r);
-
-            proxy = (Remote) spCons.newInstance(new Object[] { handler });
-            this.registerRootRmiInstance((Remote) proxy);
+            proxy = handler.buildStubProxy(true);
+            this.registerRootRmiInstance(proxy);
 
             // Register ourselves on our naming service
             registerProxy(UnicastRemoteObject.exportObject(proxy, serverPort));

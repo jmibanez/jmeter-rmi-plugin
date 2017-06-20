@@ -3,16 +3,29 @@ package com.orangeandbronze.tools.jmeter;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import org.apache.log.Logger;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.io.Serializable;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.jmeter.util.JMeterUtils;
 
 
 public class DynamicStubProxyInvocationHandler
-    implements InvocationHandler, Serializable
+    implements InvocationHandler,
+               MethodInterceptor,
+               Serializable
 {
     private static final long serialVersionUID = -30090000L;
 
@@ -33,6 +46,36 @@ public class DynamicStubProxyInvocationHandler
         this.recorder = r;
     }
 
+    public Remote buildStubProxy(boolean isRoot)
+        throws IllegalAccessException,
+               InstantiationException,
+               InvocationTargetException,
+               NoSuchMethodException {
+        Class stub = stubInstance.getClass();
+        if(stub == null) {
+            throw new RuntimeException("Couldn't find stub class");
+        }
+
+        log.debug("Stub class: " + stub.getName());
+        Class[] stubInterfaces = stub.getInterfaces();
+
+        if (isRoot) {
+            Class<?> stubProxyClass = Proxy.getProxyClass(getClass().getClassLoader(),
+                                                          stubInterfaces);
+            Constructor<?> spCons =
+                stubProxyClass.getConstructor(new Class[] { InvocationHandler.class });
+            return (Remote) spCons.newInstance(new Object[] { this });
+        }
+        else {
+            Enhancer enhancer = new Enhancer();
+            enhancer.setSuperclass(UnicastRemoteObject.class);
+            enhancer.setInterfaces(stubInterfaces);
+            enhancer.setCallback(this);
+            return (Remote) enhancer.create();
+        }
+    }
+
+
     private void recordCall(MethodCallRecord r) {
         try {
             recorder.recordCall(r);
@@ -43,7 +86,25 @@ public class DynamicStubProxyInvocationHandler
         }
     }
 
-    public Object invoke(Object instance, Method m, Object[] args) throws Throwable {
+    public Object intercept(Object instance, Method m, Object[] args,
+                            MethodProxy methodProxy)
+        throws Throwable {
+        // Ensure we don't record Object methods such as toString and hashCode
+        if ("hashCode".equals(m.getName())
+            || "toString".equals(m.getName())) {
+            return methodProxy.invokeSuper(instance, args);
+        }
+        return this.recordMethodCall(instance, m, args, methodProxy);
+    }
+
+    public Object invoke(Object instance, Method m, Object[] args)
+        throws Throwable {
+        return this.recordMethodCall(instance, m, args, null);
+    }
+
+    private Object recordMethodCall(Object instance, Method m, Object[] args,
+                                    MethodProxy methodProxy)
+        throws Throwable {
         log.debug("Calling method " + m.getName());
         MethodCallRecord r = new MethodCallRecord(instanceName, m, args);
         log.debug("Record created");
@@ -52,7 +113,16 @@ public class DynamicStubProxyInvocationHandler
         // args; recreate them from scratch
         args = r.recreateArguments();
         try {
-            Object returnValue = m.invoke(stubInstance, args);
+            Object returnValue = null;
+            if (methodProxy != null) {
+                // We bypass the method proxy, as we need to call the Java RMI
+                // stub directly, not UnicastRemoteObject (which won't have
+                // the interface methods anyway)
+                returnValue = methodProxy.invoke(stubInstance, args);
+            }
+            else {
+                returnValue = m.invoke(stubInstance, args);
+            }
             r.returned(returnValue);
             return returnValue;
         }
