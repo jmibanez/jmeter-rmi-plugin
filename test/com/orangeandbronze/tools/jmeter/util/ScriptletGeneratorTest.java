@@ -60,8 +60,6 @@ public class ScriptletGeneratorTest extends TestCase {
         SimpleBeanInstance fromScriptlet = (SimpleBeanInstance) bshInterpreter.get("simple");
         assertEquals(simple, fromScriptlet);
 
-        System.out.println(scriptlet);
-
     }
 
     public void testNestedGenerateScriptletForObject()
@@ -92,8 +90,6 @@ public class ScriptletGeneratorTest extends TestCase {
 
         ComplexBeanInstance fromScriptlet = (ComplexBeanInstance) bshInterpreter.get("complex");
         assertEquals(complex, fromScriptlet);
-
-        System.out.println(scriptlet);
     }
 
     public void testGenerateScriptletFromCyclicClassRef()
@@ -114,8 +110,6 @@ public class ScriptletGeneratorTest extends TestCase {
         CyclicClass fromScriptlet = (CyclicClass) bshInterpreter.get("parent");
         assertEquals(parent, fromScriptlet);
         assertEquals(parent.children, fromScriptlet.children);
-
-        System.out.println(scriptlet);
     }
 
 
