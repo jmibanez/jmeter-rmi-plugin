@@ -186,7 +186,8 @@ public class NativeRmiProxy
             Class stubProxyClass = Proxy.getProxyClass(getClass().getClassLoader(),
                                                        stubInterfaces);
             Constructor spCons = stubProxyClass.getConstructor(new Class[] { InvocationHandler.class });
-            handler = new DynamicStubProxyInvocationHandler(stubInstance, r);
+            handler = new DynamicStubProxyInvocationHandler(this, stubInstance,
+                                                            null, r);
 
             proxy = (Remote) spCons.newInstance(new Object[] { handler });
             this.registerRootRmiInstance((Remote) proxy);
@@ -194,7 +195,6 @@ public class NativeRmiProxy
             // Register ourselves on our naming service
             registerProxy(UnicastRemoteObject.exportObject(proxy, serverPort));
             runBindingScript(stubInstance, proxy);
-            
         }
         catch(RemoteException remoteEx) {
             log.error("RemoteException thrown while setting up proxy", remoteEx);

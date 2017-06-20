@@ -10,19 +10,26 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.jmeter.util.JMeterUtils;
 
+
 public class DynamicStubProxyInvocationHandler
     implements InvocationHandler, Serializable
 {
-
     private static final long serialVersionUID = -30090000L;
 
+    private InstanceRegistry instanceRegistry;
+    private String instanceName;
     private Object stubInstance;
     private MethodRecorder recorder;
 
     private static Log log = LogFactory.getLog(DynamicStubProxyInvocationHandler.class);
 
-    public DynamicStubProxyInvocationHandler(Object stubInstance, MethodRecorder r) {
+
+    public DynamicStubProxyInvocationHandler(InstanceRegistry instanceRegistry,
+                                             Object stubInstance, String instanceName,
+                                             MethodRecorder r) {
+        this.instanceRegistry = instanceRegistry;
         this.stubInstance = stubInstance;
+        this.instanceName = instanceName;
         this.recorder = r;
     }
 
