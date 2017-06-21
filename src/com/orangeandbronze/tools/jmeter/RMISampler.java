@@ -72,18 +72,6 @@ public class RMISampler
         }
     }
 
-    public void setRemoteObjectConfig(RMIRemoteObjectConfig value) {
-        RMIRemoteObjectConfig remoteObj = getRemoteObjectConfig();
-        if (remoteObj != null) {
-            log.warn("Existing remote object config " + remoteObj.getName() + " superseded by " + value.getName());
-        }
-        setProperty(new TestElementProperty(REMOTE_OBJECT_CONFIG, value));
-    }
-
-    public RMIRemoteObjectConfig getRemoteObjectConfig() {
-        return (RMIRemoteObjectConfig) getProperty(REMOTE_OBJECT_CONFIG).getObjectValue();
-    }
-
     public void testStarted() {
         testStarted(null);
     }
@@ -231,6 +219,19 @@ public class RMISampler
         return methodNameAndArgs;
     }
 
+    private RMIRemoteObjectConfig getRemoteObjectConfig() {
+        return (RMIRemoteObjectConfig) getProperty(REMOTE_OBJECT_CONFIG).getObjectValue();
+    }
+
+    private void setRemoteObjectConfig(RMIRemoteObjectConfig value) {
+        RMIRemoteObjectConfig remoteObj = getRemoteObjectConfig();
+        if (remoteObj != null) {
+            log.warn("Existing remote object config " + remoteObj.getName() + " superseded by " + value.getName());
+        }
+        JMeterProperty remoteObjProp = new TestElementProperty(REMOTE_OBJECT_CONFIG, value);
+        setProperty(remoteObjProp);
+        setTemporary(remoteObjProp);
+    }
 
     private Interpreter getInterpreter() {
         return (Interpreter) getProperty(BSH_INTERPRETER).getObjectValue();
