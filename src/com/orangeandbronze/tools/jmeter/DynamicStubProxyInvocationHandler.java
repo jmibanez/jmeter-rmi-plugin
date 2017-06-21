@@ -33,6 +33,7 @@ public class DynamicStubProxyInvocationHandler
     private String instanceName;
     private Object stubInstance;
     private MethodRecorder recorder;
+    ProxyObjectGraph graphVisitor;
 
     private static Log log = LogFactory.getLog(DynamicStubProxyInvocationHandler.class);
 
@@ -44,6 +45,8 @@ public class DynamicStubProxyInvocationHandler
         this.stubInstance = stubInstance;
         this.instanceName = instanceName;
         this.recorder = r;
+        this.graphVisitor = new ProxyObjectGraph(instanceRegistry,
+                                                 recorder);
     }
 
     public Remote buildStubProxy(boolean isRoot)
@@ -124,6 +127,9 @@ public class DynamicStubProxyInvocationHandler
                 returnValue = m.invoke(stubInstance, args);
             }
             r.returned(returnValue);
+
+            returnValue = graphVisitor.replaceRemotes(returnValue, r);
+            r.setRemotePathsInReturn(graphVisitor.getAndClearRemoteInstanceHandles());
             return returnValue;
         }
         catch(InvocationTargetException invokEx) {
