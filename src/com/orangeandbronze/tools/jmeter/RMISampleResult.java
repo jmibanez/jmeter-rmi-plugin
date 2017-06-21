@@ -104,7 +104,7 @@ public class RMISampleResult
             Throwable t = (Throwable) returnValue;
             t.printStackTrace(stackTrace);
 
-            this.setResponseData(sw.toString());
+            this.setResponseData(sw.toString(), "UTF-8");
         }
         else if(returnValue != null) {
             // Serialize the return value
@@ -129,7 +129,7 @@ public class RMISampleResult
             }
         }
         else {
-            this.setResponseData("Returned null or method return type is void");
+            this.setResponseData("Returned null or method return type is void", "UTF-8");
         }
     }
 
