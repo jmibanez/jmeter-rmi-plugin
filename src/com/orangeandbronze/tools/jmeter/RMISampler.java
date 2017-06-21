@@ -42,6 +42,7 @@ public class RMISampler
     implements TestStateListener {
 
     public static final String REMOTE_OBJECT_CONFIG = "RMISampler.remote_object_config";
+    public static final String TARGET_NAME = "RMISampler.target_name";
     public static final String METHOD_NAME = "RMISampler.method_name";
     public static final String ARGUMENTS = "RMISampler.method_arguments";
     public static final String ARG_SCRIPT = "RMISampler.method_arguments_script";
@@ -100,6 +101,21 @@ public class RMISampler
         jmctx.getVariables().remove(BSH_INTERPRETER);
     }
 
+    public void setTargetName(final String value) {
+        if ("".trim().equals(value)) {
+            setProperty(TARGET_NAME, null);
+
+        }
+        setProperty(TARGET_NAME, value);
+    }
+
+    public String getTargetName() {
+        String value = getPropertyAsString(TARGET_NAME);
+        if ("".trim().equals(value)) {
+            return null;
+        }
+        return value;
+    }
 
     public void setMethodName(String value) {
         setProperty(METHOD_NAME, value);
@@ -170,12 +186,14 @@ public class RMISampler
         Object[] args = getArguments();
 
         log.info("Getting target");
-        Remote target = remoteObj.getTarget(null);
+        String targetName = getTargetName();
+        Remote target = remoteObj.getTarget(targetName);
 
-        Class[] argTypes = remoteObj.getArgumentTypes(null, methodName);
+        Class[] argTypes = remoteObj.getArgumentTypes(targetName,
+                                                      methodName);
 
         try {
-            Class targetClass = target.getClass();
+            Class<?> targetClass = target.getClass();
             String actualMethodName = getMethodName(methodName);
             Method m = targetClass.getMethod(actualMethodName, argTypes);
 

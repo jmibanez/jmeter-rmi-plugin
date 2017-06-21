@@ -11,7 +11,8 @@ import com.orangeandbronze.tools.jmeter.RMISampler;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
 import org.apache.jmeter.gui.util.VerticalPanel;
-import javax.swing.JTextArea;
+import org.apache.jmeter.gui.util.JSyntaxTextArea;
+import org.apache.jmeter.gui.util.JTextScrollPane;
 import javax.swing.JCheckBox;
 
 /**
@@ -25,12 +26,16 @@ import javax.swing.JCheckBox;
  */
 public class RMISamplerGUI extends AbstractSamplerGui {
 
+    private static final String TARGETNAME_FIELD = "targetName";
     private static final String METHODNAME_FIELD = "methodName";
     private static final String ARGUMENTS_SCRIPT_FIELD = "argumentsScript";
 
+    private JTextField targetName;
     private JTextField methodName;
-    private JTextArea argsScript;
     private JCheckBox ignExceptions;
+
+    private JSyntaxTextArea argsScript;
+    private JTextScrollPane scroller;
 
     private RMISampler model;
 
@@ -40,6 +45,12 @@ public class RMISamplerGUI extends AbstractSamplerGui {
      */
     public RMISamplerGUI() {
         super();
+        methodName = new JTextField("", 40);
+        targetName = new JTextField("", 40);
+        ignExceptions = new JCheckBox("Ignore Exceptions");
+        argsScript = JSyntaxTextArea.getInstance(20, 20);
+        scroller = JTextScrollPane.getInstance(argsScript, true);
+
         init();
     }
 
@@ -47,6 +58,7 @@ public class RMISamplerGUI extends AbstractSamplerGui {
     public void configure(TestElement e) {
         super.configure(e);
         model = (RMISampler) e;
+        targetName.setText(model.getTargetName());
         methodName.setText(model.getMethodName());
         argsScript.setText(model.getArgumentsScript());
         ignExceptions.setSelected(model.isExceptionsIgnored());
@@ -56,6 +68,7 @@ public class RMISamplerGUI extends AbstractSamplerGui {
         super.configureTestElement(element);
         if(element instanceof RMISampler) {
             model = (RMISampler) element;
+            model.setTargetName(targetName.getText());
             model.setMethodName(methodName.getText());
             model.setArgumentsScript(argsScript.getText());
             model.setExceptionsIgnored(ignExceptions.isSelected());
@@ -78,40 +91,47 @@ public class RMISamplerGUI extends AbstractSamplerGui {
 
 
     private void init() {
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(0, 5));
         setBorder(makeBorder());
 
         add(makeTitlePanel(), BorderLayout.NORTH);
 
-        methodName = new JTextField("", 40);
+        targetName.setName(TARGETNAME_FIELD);
         methodName.setName(METHODNAME_FIELD);
-        //targetRmiName.addKeyListener(this);
 
-        JLabel label = new JLabel("Method name");
-        label.setLabelFor(methodName);
+        JLabel targetNameLabel = new JLabel("Target name");
+        targetNameLabel.setLabelFor(targetName);
 
-        argsScript = new JTextArea("");
-        argsScript.setName(ARGUMENTS_SCRIPT_FIELD);
-
-        JLabel argLabel = new JLabel("Arguments script");
-        argLabel.setLabelFor(argsScript);
-
-        ignExceptions = new JCheckBox("Ignore Exceptions");
+        JLabel methodNameLabel = new JLabel("Method name");
+        methodNameLabel.setLabelFor(methodName);
 
         Box b = Box.createHorizontalBox();
-        b.add(label);
-        b.add(methodName);
-        b.add(ignExceptions);
+        b.add(targetNameLabel);
+        b.add(targetName);
 
-        Box b2 = Box.createVerticalBox();
-        b2.add(argLabel);
-        b2.add(argsScript);
+        Box b2 = Box.createHorizontalBox();
+        b2.add(methodNameLabel);
+        b2.add(methodName);
+        b2.add(ignExceptions);
+
+        Box targetBox = Box.createVerticalBox();
+        targetBox.add(b);
+        targetBox.add(b2);
+
+        JLabel argLabel = new JLabel("Arguments script");
+        argLabel.setLabelFor(scroller);
+        argsScript.discardAllEdits();
+
+        JPanel editorPanel = new VerticalPanel();
+        editorPanel.add(argLabel, BorderLayout.NORTH);
+        editorPanel.add(scroller, BorderLayout.CENTER);
 
         JPanel configPanel = new VerticalPanel();
-        configPanel.add(b, BorderLayout.NORTH);
-        configPanel.add(b2, BorderLayout.CENTER);
+        configPanel.add(targetBox, BorderLayout.NORTH);
+        configPanel.add(editorPanel, BorderLayout.CENTER);
 
         add(configPanel, BorderLayout.CENTER);
+
     }
 }
 
