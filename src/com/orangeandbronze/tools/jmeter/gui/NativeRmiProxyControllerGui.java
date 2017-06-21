@@ -169,7 +169,8 @@ public class NativeRmiProxyControllerGui extends LogicControllerGui implements K
 
     // Implementation of org.apache.jmeter.gui.JMeterGUIComponent
 
-    public Collection getMenuCategories() {
+    @Override
+    public Collection<String> getMenuCategories() {
         return Arrays.asList(new String[] { MenuFactory.NON_TEST_ELEMENTS });
     }
 
