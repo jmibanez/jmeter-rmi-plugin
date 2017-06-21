@@ -70,7 +70,7 @@ public class RmiSamplerGeneratorMethodRecorder
         Object[] args = record.getArguments();
 
         if(argTypes == null || argTypes.length == 0) {
-            return "// No arguments";
+            return "// No arguments\nmethodArgs ( ) { return null; }";
         }
 
         StringBuilder sb = new StringBuilder();
