@@ -78,6 +78,8 @@ public class RmiSamplerGeneratorMethodRecorder
             return "// No arguments\nmethodArgs ( ) { return null; }";
         }
 
+        ScriptletGenerator gen = new ScriptletGenerator();
+
         StringBuilder sb = new StringBuilder();
         sb.append("methodArgs ( ) {\n");
         for(int i = 0; i < args.length; i++) {
@@ -85,8 +87,7 @@ public class RmiSamplerGeneratorMethodRecorder
                 continue;
             }
 
-            sb.append(ScriptletGenerator.getInstance()
-                      .generateScriptletForObject(args[i], "args" + i, argTypes[i]));
+            sb.append(gen.generateScriptletForObject(args[i], "args" + i, argTypes[i]));
         }
 
         sb.append("Object[] args = new Object[] { ");

@@ -36,12 +36,6 @@ import org.apache.commons.logging.LogFactory;
 public class ScriptletGenerator {
 
     private static Log log = LogFactory.getLog(ScriptletGenerator.class);
-    private static ScriptletGenerator instance = null;
-
-    static {
-        instance = new ScriptletGenerator(GeneratedType.BOTH);
-    }
-
 
     public static enum GeneratedType { PUBLIC_FIELDS_ONLY, INTROSPECTION_ONLY, BOTH }
 
@@ -50,21 +44,24 @@ public class ScriptletGenerator {
     private Map<Object,String> generatedObjects = new HashMap<Object,String>();
 
     /**
-     * Creates a new <code>ScriptletGenerator</code> instance.
+     * Creates a new <code>ScriptletGenerator</code> instance, with
+     * the default generation type (BOTH).
      *
      */
-    ScriptletGenerator(GeneratedType type) {
+    public ScriptletGenerator() {
+        this(GeneratedType.BOTH);
+    }
+
+    /**
+     * Creates a new <code>ScriptletGenerator</code> instance, with a
+     * specified generation type.
+     *
+     * @param type Whether to use public fields, Java Bean introspection, or both.
+     *
+     */
+    public ScriptletGenerator(GeneratedType type) {
         this.generationType = type;
     }
-
-    public static ScriptletGenerator getInstance() {
-        return instance;
-    }
-
-    public static ScriptletGenerator getCustomInstance(GeneratedType generationType) {
-        return new ScriptletGenerator(generationType);
-    }
-
 
     public String generateScriptletForObject(Object bean, String varname) {
         return generateScriptletForObject(bean, varname, null);

@@ -38,7 +38,7 @@ public class ScriptletGeneratorTest extends TestCase {
     @Override
     public void setUp()
         throws Exception {
-        inst = ScriptletGenerator.getInstance();
+        inst = new ScriptletGenerator();
         bshInterpreter = new Interpreter();
     }
 
