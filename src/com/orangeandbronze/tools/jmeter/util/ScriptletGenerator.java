@@ -24,6 +24,8 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import static com.orangeandbronze.tools.jmeter.util.ReflectionUtil.getFieldsUpTo;
+
 /**
  * Describe class ScriptletGenerator here.
  *
@@ -37,31 +39,7 @@ public class ScriptletGenerator {
 
     private static Log log = LogFactory.getLog(ScriptletGenerator.class);
 
-    public static enum GeneratedType { PUBLIC_FIELDS_ONLY, INTROSPECTION_ONLY, BOTH }
-
-    private GeneratedType generationType;
-
     private Map<Object,String> generatedObjects = new HashMap<Object,String>();
-
-    /**
-     * Creates a new <code>ScriptletGenerator</code> instance, with
-     * the default generation type (BOTH).
-     *
-     */
-    public ScriptletGenerator() {
-        this(GeneratedType.BOTH);
-    }
-
-    /**
-     * Creates a new <code>ScriptletGenerator</code> instance, with a
-     * specified generation type.
-     *
-     * @param type Whether to use public fields, Java Bean introspection, or both.
-     *
-     */
-    public ScriptletGenerator(GeneratedType type) {
-        this.generationType = type;
-    }
 
     public String generateScriptletForObject(Object bean, String varname) {
         return generateScriptletForObject(bean, varname, null);
@@ -158,19 +136,20 @@ public class ScriptletGenerator {
         return new String[] { decl.toString(), scriptlet.toString() };
     }
 
-    private String[] scriptletFromPubFields(Object bean, String varname) {
+    private String[] scriptletFromFields(Object bean, String varname) {
         Class beanClass = bean.getClass();
         StringBuilder decl = new StringBuilder();
         StringBuilder scriptlet = new StringBuilder();
 
-        // Get all public fields
-        Field[] fields = beanClass.getFields();
         int objCount = 1;
-        for(Field f : fields) {
-            if(!(Modifier.isPublic(f.getModifiers())
-                 && !Modifier.isStatic(f.getModifiers()))) {
+        for(Field f: getFieldsUpTo(beanClass, Object.class)) {
+            if (Modifier.isFinal(f.getModifiers())
+                || Modifier.isStatic(f.getModifiers())) {
+                // Ignore static or final fields
                 continue;
             }
+
+            f.setAccessible(true);
 
             Class valType = f.getType();
             Object val = null;
@@ -289,30 +268,13 @@ public class ScriptletGenerator {
         scriptlet.append(beanType.getCanonicalName());
         scriptlet.append("();\n");
 
-        if(generationType.equals(GeneratedType.INTROSPECTION_ONLY)
-           || generationType.equals(GeneratedType.BOTH)) {
-            try {
-                String[] scr = scriptletFromIntrospection(bean, varname);
-                //decl.append("// ----------  Introspection values\n");
-                decl.append(scr[0]);
+        String[] scr = scriptletFromFields(bean, varname);
+        decl.append("\n");
+        decl.append("// ----------  Field values\n");
+        decl.append(scr[0]);
 
-                scriptlet.append(scr[1]);
-            }
-            catch(IntrospectionException ignored) {
-                ignored.printStackTrace();
-            }
-        }
-
-        if(generationType.equals(GeneratedType.PUBLIC_FIELDS_ONLY)
-           || generationType.equals(GeneratedType.BOTH)) {
-            String[] scr = scriptletFromPubFields(bean, varname); 
-            decl.append("\n");
-            //decl.append("// ----------  Public field values\n");
-            decl.append(scr[0]);
-
-            scriptlet.append("\n");
-            scriptlet.append(scr[1]);
-        }
+        scriptlet.append("\n");
+        scriptlet.append(scr[1]);
 
         return new String[] { decl.toString(), scriptlet.toString() };
     }

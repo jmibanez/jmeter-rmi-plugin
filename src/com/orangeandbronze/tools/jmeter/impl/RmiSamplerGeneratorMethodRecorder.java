@@ -81,7 +81,7 @@ public class RmiSamplerGeneratorMethodRecorder
         ScriptletGenerator gen = new ScriptletGenerator();
 
         StringBuilder sb = new StringBuilder();
-        sb.append("methodArgs ( ) {\n");
+        sb.append("setAccessibility(true);\nmethodArgs ( ) {\n");
         for(int i = 0; i < args.length; i++) {
             if(args[i] == null) {
                 continue;
