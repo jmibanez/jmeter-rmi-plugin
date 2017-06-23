@@ -16,6 +16,7 @@ import org.apache.commons.logging.LogFactory;
 import java.rmi.server.RemoteObject;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+import org.apache.jmeter.testelement.TestStateListener;
 import org.apache.jmeter.testelement.property.ObjectProperty;
 import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.testelement.property.NullProperty;
@@ -36,9 +37,12 @@ import org.apache.jmeter.threads.JMeterVariables;
  * @author <a href="mailto:jm@orangeandbronze.com">JM Ibanez</a>
  * @version 1.0
  */
-public class RMISampler extends AbstractSampler {
+public class RMISampler
+    extends AbstractSampler
+    implements TestStateListener {
 
     public static final String REMOTE_OBJECT_CONFIG = "RMISampler.remote_object_config";
+    public static final String TARGET_NAME = "RMISampler.target_name";
     public static final String METHOD_NAME = "RMISampler.method_name";
     public static final String ARGUMENTS = "RMISampler.method_arguments";
     public static final String ARG_SCRIPT = "RMISampler.method_arguments_script";
@@ -69,26 +73,14 @@ public class RMISampler extends AbstractSampler {
         }
     }
 
-    public void setRemoteObjectConfig(RMIRemoteObjectConfig value) {
-        RMIRemoteObjectConfig remoteObj = getRemoteObjectConfig();
-        if (remoteObj != null) {
-            log.warn("Existing remote object config " + remoteObj.getName() + " superseded by " + value.getName());
-        }
-        setProperty(new TestElementProperty(REMOTE_OBJECT_CONFIG, value));
+    public void testStarted() {
+        testStarted(null);
     }
 
-    public RMIRemoteObjectConfig getRemoteObjectConfig() {
-        return (RMIRemoteObjectConfig) getProperty(REMOTE_OBJECT_CONFIG).getObjectValue();
-    }
-
-    public Interpreter getInterpreter() {
-        JMeterProperty p = getProperty(BSH_INTERPRETER);
-        if(p != null && p.getObjectValue() != null) {
-            return (Interpreter) p.getObjectValue();
-        }
-
+    public void testStarted(final String host) {
         Interpreter argInterpreter = new Interpreter();
-        JMeterProperty bshProp = new ObjectProperty(BSH_INTERPRETER, argInterpreter);
+        JMeterProperty bshProp = new ObjectProperty(BSH_INTERPRETER,
+                                                    argInterpreter);
         setProperty(bshProp);
         setTemporary(bshProp);
 
@@ -98,10 +90,32 @@ public class RMISampler extends AbstractSampler {
         catch(EvalError evalErr) {
             log.info("Error initially evaluating script: " + evalErr.getMessage());
         }
-
-        return argInterpreter;
     }
 
+    public void testEnded() {
+        testEnded(null);
+    }
+
+    public void testEnded(final String host) {
+        JMeterContext jmctx = JMeterContextService.getContext();
+        jmctx.getVariables().remove(BSH_INTERPRETER);
+    }
+
+    public void setTargetName(final String value) {
+        if ("".trim().equals(value)) {
+            setProperty(TARGET_NAME, null);
+
+        }
+        setProperty(TARGET_NAME, value);
+    }
+
+    public String getTargetName() {
+        String value = getPropertyAsString(TARGET_NAME);
+        if ("".trim().equals(value)) {
+            return null;
+        }
+        return value;
+    }
 
     public void setMethodName(String value) {
         setProperty(METHOD_NAME, value);
@@ -114,14 +128,6 @@ public class RMISampler extends AbstractSampler {
 
     public void setArgumentsScript(String value) {
         setProperty(ARG_SCRIPT, value);
-        try {
-            Interpreter argInterpreter = getInterpreter();
-            log.info("Eval'ing script with Interpreter " + argInterpreter);
-            argInterpreter.eval(value);
-        }
-        catch(EvalError evalErr) {
-            log.info("Error initially evaluating script: " + evalErr.getMessage());
-        }
     }
 
     public String getArgumentsScript() {
@@ -143,13 +149,7 @@ public class RMISampler extends AbstractSampler {
 
 
     public Object[] getArguments() {
-        JMeterProperty p = getProperty(ARGUMENTS);
-        if(p == null || p instanceof NullProperty) {
-            return fromArgumentsScript();
-        }
-
-        ObjectProperty op = (ObjectProperty) getProperty(ARGUMENTS);
-        return (Object[]) op.getObjectValue();
+        return fromArgumentsScript();
     }
 
     public void setArguments(Object[] arguments) {
@@ -186,12 +186,14 @@ public class RMISampler extends AbstractSampler {
         Object[] args = getArguments();
 
         log.info("Getting target");
-        Remote target = remoteObj.getTarget();
+        String targetName = getTargetName();
+        Remote target = remoteObj.getTarget(targetName);
 
-        Class[] argTypes = remoteObj.getArgumentTypes(methodName);
+        Class[] argTypes = remoteObj.getArgumentTypes(targetName,
+                                                      methodName);
 
         try {
-            Class targetClass = target.getClass();
+            Class<?> targetClass = target.getClass();
             String actualMethodName = getMethodName(methodName);
             Method m = targetClass.getMethod(actualMethodName, argTypes);
 
@@ -235,6 +237,23 @@ public class RMISampler extends AbstractSampler {
         return methodNameAndArgs;
     }
 
+    private RMIRemoteObjectConfig getRemoteObjectConfig() {
+        return (RMIRemoteObjectConfig) getProperty(REMOTE_OBJECT_CONFIG).getObjectValue();
+    }
+
+    private void setRemoteObjectConfig(RMIRemoteObjectConfig value) {
+        RMIRemoteObjectConfig remoteObj = getRemoteObjectConfig();
+        if (remoteObj != null) {
+            log.warn("Existing remote object config " + remoteObj.getName() + " superseded by " + value.getName());
+        }
+        JMeterProperty remoteObjProp = new TestElementProperty(REMOTE_OBJECT_CONFIG, value);
+        setProperty(remoteObjProp);
+        setTemporary(remoteObjProp);
+    }
+
+    private Interpreter getInterpreter() {
+        return (Interpreter) getProperty(BSH_INTERPRETER).getObjectValue();
+    }
 
     public String toString() {
         return super.toString() +  ": " +  getMethodName();

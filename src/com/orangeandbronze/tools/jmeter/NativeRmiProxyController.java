@@ -24,6 +24,7 @@ import org.apache.jmeter.testelement.property.IntegerProperty;
 import com.orangeandbronze.tools.jmeter.gui.NativeRmiProxyControllerGui;
 import com.orangeandbronze.tools.jmeter.impl.RmiSamplerGeneratorMethodRecorder;
 import org.apache.jorphan.logging.LoggingManager;
+import org.apache.jmeter.extractor.BeanShellPostProcessor;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.modifiers.BeanShellPreProcessor;
 import org.apache.jmeter.modifiers.BeanShellPreProcessorBeanInfo;
@@ -70,9 +71,14 @@ public class NativeRmiProxyController extends GenericController {
     }
 
 
-    public synchronized void deliverSampler(RMISampler s, MethodCallRecord record) {
+    public synchronized void deliverSampler(RMISampler s, BeanShellPostProcessor p,
+                                            MethodCallRecord record) {
         JMeterTreeNode myTarget = findTargetControllerNode();
-        placeSampler(s, null, myTarget, record);
+        TestElement[] children = null;
+        if (p != null) {
+            children = new TestElement[]{ p };
+        }
+        placeSampler(s, children, myTarget, record);
     }
 
 

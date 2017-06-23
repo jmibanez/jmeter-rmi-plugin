@@ -7,6 +7,8 @@ import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
+import java.util.Collections;
+import java.util.Map;
 
 public class MethodCallRecord
     implements Serializable
@@ -14,6 +16,7 @@ public class MethodCallRecord
 
     private static final long serialVersionUID = -30090001L;
 
+    private String target;
     private String method;
     private Class[] argTypes;
     private Object[] args;
@@ -22,14 +25,22 @@ public class MethodCallRecord
     private Throwable returnException;
     private boolean isException = false;
 
+    private transient boolean isRemoteReturned = false;
+    private transient Map<String, String> remotePathsInReturn = Collections.emptyMap();
+
     MethodCallRecord() {
     }
 
-    public MethodCallRecord(Method m, Object[] args) {
+    public MethodCallRecord(String target, Method m, Object[] args) {
+        this.target = target;
         this.argTypes = m.getParameterTypes();
         this.method = constructMethodName(m.getName(), this.argTypes);
         this.args = args;
         packArgs();
+    }
+
+    public String getTarget() {
+        return target;
     }
 
     public String getMethod() {
@@ -73,6 +84,22 @@ public class MethodCallRecord
 
     public boolean isException() {
         return isException;
+    }
+
+    public void setRemoteReturned(final boolean isRemoteReturned) {
+        this.isRemoteReturned = isRemoteReturned;
+    }
+
+    public boolean isRemoteReturned() {
+        return isRemoteReturned;
+    }
+
+    public void setRemotePathsInReturn(final Map<String, String> remotePathsInReturn) {
+        this.remotePathsInReturn = remotePathsInReturn;
+    }
+
+    public Map<String, String> getRemotePathsInReturn() {
+        return remotePathsInReturn;
     }
 
     public static String constructMethodName(String methodName, Class[] argTypes) {
