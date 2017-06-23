@@ -266,6 +266,10 @@ public class ScriptletGenerator {
             return new String[] { "String " + varname + " = " + stringAsScriptlet((String) bean) + ";\n", "" };
         }
 
+        if(beanType == Class.class) {
+            return new String[] { "Class " + varname + " = " + classRefScriptlet((Class) bean) + ";\n", "" };
+        }
+
         String typeSignature = beanType.getCanonicalName();
 
         if(generatedObjects.containsKey(bean)) {
@@ -378,6 +382,10 @@ public class ScriptletGenerator {
 
     private String stringAsScriptlet(String value) {
         return "\"" + escape(value) + "\"";
+    }
+
+    private String classRefScriptlet(Class clazz) {
+        return clazz.getName() + ".class";
     }
 
     private String escape(String value) {
