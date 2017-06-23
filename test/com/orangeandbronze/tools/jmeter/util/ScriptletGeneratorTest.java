@@ -112,6 +112,110 @@ public class ScriptletGeneratorTest extends TestCase {
         assertEquals(parent.children, fromScriptlet.children);
     }
 
+    public void testGenerateScriptletForCharArray()
+        throws Exception {
+        char[] testChars = new char[]{ 'a', 'b', 'c' };
+
+        String scriptlet = inst.generateScriptletForObject(testChars, "chars");
+
+        assertNotNull(scriptlet);
+
+        bshInterpreter.eval(scriptlet);
+        Object charsFromBsh = bshInterpreter.get("chars");
+        Class<?> charsFromBshClass = charsFromBsh.getClass();
+
+        assertTrue(charsFromBshClass.isArray());
+        assertEquals(char.class, charsFromBshClass.getComponentType());
+
+        char[] fromBsh = (char[]) charsFromBsh;
+        assertEquals(testChars.length, fromBsh.length);
+        for (int i = 0; i < testChars.length; i++) {
+            assertEquals(testChars[i], fromBsh[i]);
+        }
+    }
+
+    public void testGenerateScriptletForIntArray()
+        throws Exception {
+        int[] foo = new int[] { 1, 2, 3 };
+
+        String scriptlet = inst.generateScriptletForObject(foo, "arr");
+
+        assertNotNull(scriptlet);
+
+        bshInterpreter.eval(scriptlet);
+        Object arrFromBsh = bshInterpreter.get("arr");
+        Class<?> arrFromBshClass = arrFromBsh.getClass();
+
+        assertTrue(arrFromBshClass.isArray());
+        assertEquals(int.class, arrFromBshClass.getComponentType());
+
+        int[] fromBsh = (int[]) arrFromBsh;
+        assertEquals(foo.length, fromBsh.length);
+        for (int i = 0; i < foo.length; i++) {
+            assertEquals(foo[i], fromBsh[i]);
+        }
+    }
+
+    public void testGenerateScriptletForStringArray()
+        throws Exception {
+        String[] foo = new String[] { "1", "2", "3" };
+
+        String scriptlet = inst.generateScriptletForObject(foo, "arr");
+
+        assertNotNull(scriptlet);
+
+        bshInterpreter.eval(scriptlet);
+        Object arrFromBsh = bshInterpreter.get("arr");
+        Class<?> arrFromBshClass = arrFromBsh.getClass();
+
+        assertTrue(arrFromBshClass.isArray());
+        assertEquals(String.class, arrFromBshClass.getComponentType());
+
+        String[] fromBsh = (String[]) arrFromBsh;
+        assertEquals(foo.length, fromBsh.length);
+        for (int i = 0; i < foo.length; i++) {
+            assertEquals(foo[i], fromBsh[i]);
+        }
+    }
+
+    public void testGenerateScriptletForArrayWithProperType()
+        throws Exception {
+        SimpleBeanInstance a = new SimpleBeanInstance();
+        a.setName("Simple\nString with \"quotes\" and a \0 null (A)");
+        a.setAge(40);
+        a.c = '\n';
+
+        SimpleBeanInstance b = new SimpleBeanInstance();
+        b.setName("Simple\nString with \"quotes\" and a \0 null (B)");
+        b.setAge(41);
+        b.c = '\t';
+
+        SimpleBeanInstance c = new SimpleBeanInstance();
+        c.setName("Simple\nString with \"quotes\" and a \0 null (C)");
+        c.setAge(42);
+        c.c = '?';
+
+        SimpleBeanInstance[] testArr = new SimpleBeanInstance[] { a, b, c };
+
+        String scriptlet = inst.generateScriptletForObject(testArr, "arr");
+
+        assertNotNull(scriptlet);
+
+        bshInterpreter.eval(scriptlet);
+        Object arrayFromBsh = bshInterpreter.get("arr");
+        Class<?> arrayFromBshClass = arrayFromBsh.getClass();
+
+        assertTrue(arrayFromBshClass.isArray());
+        assertEquals(SimpleBeanInstance.class,
+                     arrayFromBshClass.getComponentType());
+
+        SimpleBeanInstance[] fromBsh = (SimpleBeanInstance[]) arrayFromBsh;
+        assertEquals(testArr.length, fromBsh.length);
+        for (int i = 0; i < testArr.length; i++) {
+            assertEquals(testArr[i], fromBsh[i]);
+        }
+    }
+
 
     public static class SimpleBeanInstance
     {
