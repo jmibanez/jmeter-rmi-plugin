@@ -36,7 +36,8 @@ import javax.swing.JLabel;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import org.apache.jmeter.gui.util.VerticalPanel;
-import javax.swing.JTextArea;
+import org.apache.jmeter.gui.util.JSyntaxTextArea;
+import org.apache.jmeter.gui.util.JTextScrollPane;
 
 /**
  * Describe class NativeRmiProxyControllerGui here.
@@ -62,7 +63,8 @@ public class NativeRmiProxyControllerGui extends LogicControllerGui implements K
     private JTextField targetRmiName;
     private JTextField proxyNamingPort;
     private JTextField proxyPort;
-    private JTextArea bindingScript;
+    private JSyntaxTextArea bindingScript;
+    private JTextScrollPane scroller;
 
     private JButton start;
     private JButton stop;
@@ -169,7 +171,8 @@ public class NativeRmiProxyControllerGui extends LogicControllerGui implements K
 
     // Implementation of org.apache.jmeter.gui.JMeterGUIComponent
 
-    public Collection getMenuCategories() {
+    @Override
+    public Collection<String> getMenuCategories() {
         return Arrays.asList(new String[] { MenuFactory.NON_TEST_ELEMENTS });
     }
 
@@ -261,7 +264,7 @@ public class NativeRmiProxyControllerGui extends LogicControllerGui implements K
     }
 
     private void init() {
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(0, 5));
         setBorder(makeBorder());
 
         add(makeTitlePanel(), BorderLayout.NORTH);
@@ -292,28 +295,36 @@ public class NativeRmiProxyControllerGui extends LogicControllerGui implements K
         portLabel.setLabelFor(proxyPort);
 
         Box configBox = Box.createVerticalBox();
-        configBox.add(label);
-        configBox.add(targetRmiName);
 
-        configBox.add(nPortLabel);
-        configBox.add(proxyNamingPort);
+        JPanel targetRmiPanel = new VerticalPanel();
+        targetRmiPanel.add(label);
+        targetRmiPanel.add(targetRmiName);
+        configBox.add(targetRmiPanel);
 
-        configBox.add(portLabel);
-        configBox.add(proxyPort);
+        JPanel proxyNamingPortPanel = new VerticalPanel();
+        proxyNamingPortPanel.add(nPortLabel);
+        proxyNamingPortPanel.add(proxyNamingPort);
+        configBox.add(proxyNamingPortPanel);
 
-        bindingScript = new JTextArea("");
-        bindingScript.setName(BINDINGSCRIPT_FIELD);
+        JPanel proxyPortPanel = new VerticalPanel();
+        proxyPortPanel.add(portLabel);
+        proxyPortPanel.add(proxyPort);
+        configBox.add(proxyPortPanel);
+
+        bindingScript = JSyntaxTextArea.getInstance(20, 20);
+        scroller = JTextScrollPane.getInstance(bindingScript, true);
+        bindingScript.discardAllEdits();
 
         JLabel bLabel = new JLabel("Binding Script");
-        bLabel.setLabelFor(bindingScript);
+        bLabel.setLabelFor(scroller);
 
-        Box bindScriptBox = Box.createVerticalBox();
-        bindScriptBox.add(bLabel);
-        bindScriptBox.add(bindingScript);
+        JPanel bindScriptPanel = new VerticalPanel();
+        bindScriptPanel.add(bLabel);
+        bindScriptPanel.add(scroller);
 
         JPanel configPanel = new VerticalPanel();
         configPanel.add(configBox, BorderLayout.NORTH);
-        configPanel.add(bindScriptBox, BorderLayout.CENTER);
+        configPanel.add(bindScriptPanel, BorderLayout.CENTER);
         add(configPanel, BorderLayout.CENTER);
 
         start = new JButton("Start");

@@ -200,11 +200,9 @@ public class NativeRmiProxyController extends GenericController {
         recorder.setTarget(this);
         proxy.setMethodRecorder(recorder);
 
-        Thread t = new Thread(proxy);
-
         log.info("Starting proxy thread");
 
-        t.start();
+        proxy.start();
     }
 
     public void unbindProxy() {

@@ -3,11 +3,11 @@ package com.orangeandbronze.tools.jmeter;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import org.apache.log.Logger;
-//import org.apache.log4j.Logger;
 import java.lang.reflect.Method;
 import java.io.Serializable;
-import org.apache.jorphan.logging.LoggingManager;
 import java.rmi.RemoteException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.jmeter.util.JMeterUtils;
 
 public class DynamicStubProxyInvocationHandler
@@ -19,7 +19,7 @@ public class DynamicStubProxyInvocationHandler
     private Object stubInstance;
     private MethodRecorder recorder;
 
-    private static Logger log = LoggingManager.getLoggerForClass(); // Logger.getLogger(DynamicStubProxyInvocationHandler.class);
+    private static Log log = LogFactory.getLog(DynamicStubProxyInvocationHandler.class);
 
     public DynamicStubProxyInvocationHandler(Object stubInstance, MethodRecorder r) {
         this.stubInstance = stubInstance;
@@ -37,9 +37,9 @@ public class DynamicStubProxyInvocationHandler
     }
 
     public Object invoke(Object instance, Method m, Object[] args) throws Throwable {
-        log.info("Calling method " + m.getName());
+        log.debug("Calling method " + m.getName());
         MethodCallRecord r = new MethodCallRecord(m, args);
-        log.info("Record created");
+        log.debug("Record created");
 
         // Classes might suddenly change state under us when we pack
         // args; recreate them from scratch

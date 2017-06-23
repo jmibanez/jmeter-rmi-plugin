@@ -60,7 +60,8 @@
            destdir="${build.directory}"
            debug="${build.debug}"
            debuglevel="${build.debuglevel}"
-           target="1.5">
+           source="1.7"
+           target="1.7">
       <!-- compilerarg line="${build.compiler.args}" / -->
       <compilerarg line="-Xlint:deprecation -Xlint:unchecked" />
       <classpath refid="compiler.classpath" />

@@ -20,9 +20,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.Map;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Describe class ScriptletGenerator here.
@@ -35,7 +35,7 @@ import org.apache.commons.lang.StringEscapeUtils;
  */
 public class ScriptletGenerator {
 
-    private static Logger log = LoggingManager.getLoggerForClass();
+    private static Log log = LogFactory.getLog(ScriptletGenerator.class);
     private static ScriptletGenerator instance = null;
 
     static {
@@ -266,6 +266,10 @@ public class ScriptletGenerator {
             return new String[] { "String " + varname + " = " + stringAsScriptlet((String) bean) + ";\n", "" };
         }
 
+        if(beanType == Class.class) {
+            return new String[] { "Class " + varname + " = " + classRefScriptlet((Class) bean) + ";\n", "" };
+        }
+
         String typeSignature = beanType.getCanonicalName();
 
         if(generatedObjects.containsKey(bean)) {
@@ -378,6 +382,10 @@ public class ScriptletGenerator {
 
     private String stringAsScriptlet(String value) {
         return "\"" + escape(value) + "\"";
+    }
+
+    private String classRefScriptlet(Class clazz) {
+        return clazz.getName() + ".class";
     }
 
     private String escape(String value) {
