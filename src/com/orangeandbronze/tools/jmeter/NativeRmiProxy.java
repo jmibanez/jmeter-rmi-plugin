@@ -44,9 +44,7 @@ import org.apache.jorphan.util.JMeterException;
  * @author <a href="mailto:jm@orangeandbronze.com">JM Ibanez</a>
  * @version 1.0
  */
-public class NativeRmiProxy
-    implements Runnable {
-
+public class NativeRmiProxy {
     private String targetRmiName;
     private String actualObjectName;
     private String proxyObjectName;
@@ -54,13 +52,13 @@ public class NativeRmiProxy
     private String bindingScript;
 
     private Object stubInstance;
+    private Remote proxy;
     private DynamicStubProxyInvocationHandler handler;
 
-    private Registry r;
+    private Registry registry;
     private int namingPort;
     private int serverPort;
 
-    private ServerSocket eventSocket;
     private volatile boolean stillRunning;
     private static Logger log = LoggingManager.getLoggerForClass(); // Logger.getLogger(NativeRmiProxy.class);
 
@@ -113,11 +111,13 @@ public class NativeRmiProxy
 
 
     private void registerProxy(Remote proxy) throws RemoteException, AccessException {
-        r.rebind(proxyObjectName, proxy);
+        registry.rebind(proxyObjectName, proxy);
     }
 
     private void unregisterProxy() throws RemoteException, NotBoundException {
-        r.unbind(proxyObjectName);
+        registry.unbind(proxyObjectName);
+        UnicastRemoteObject.unexportObject(proxy, false);
+        UnicastRemoteObject.unexportObject(registry, false);
     }
 
     private static Registry createOrLocateRegistry(int port) throws RemoteException {
@@ -152,7 +152,7 @@ public class NativeRmiProxy
     private void setupProxy() {
         try {
             // Create naming registry
-            r = createOrLocateRegistry(namingPort);
+            this.registry = createOrLocateRegistry(namingPort);
 
             // Get stub from actual
             try {
@@ -178,10 +178,10 @@ public class NativeRmiProxy
             Constructor spCons = stubProxyClass.getConstructor(new Class[] { InvocationHandler.class });
             handler = new DynamicStubProxyInvocationHandler(stubInstance, r);
 
-            Object proxy = spCons.newInstance(new Object[] { handler });
+            proxy = (Remote) spCons.newInstance(new Object[] { handler });
 
             // Register ourselves on our naming service
-            registerProxy(UnicastRemoteObject.exportObject((Remote) proxy, serverPort));
+            registerProxy(UnicastRemoteObject.exportObject(proxy, serverPort));
             runBindingScript(stubInstance, proxy);
             
         }
@@ -206,7 +206,7 @@ public class NativeRmiProxy
         }
     }
 
-    private void readSocketCommand() {
+    private void readSocketCommand(ServerSocket eventSocket) {
         try {
             Socket sock = eventSocket.accept();
             InputStream sock_inp = sock.getInputStream();
@@ -226,15 +226,15 @@ public class NativeRmiProxy
                     } else {
                         stillRunning = false;
                     }
-                    log("DAEMON IS STOPPING...");
+                    log.info("DAEMON IS STOPPING...");
                 }
             } else {
                 // XXX: DO SOMETHING HERE
-                logError("No command read from daemon socket");
+                log.error("No command read from daemon socket");
             }
         } catch(IOException ex) {
             // FIXME: Needs implementation, possibly retry the accept() call?
-            logError("IOException: " + ex.getMessage());
+            log.error("IOException: " + ex.getMessage());
         }
     }
 
@@ -252,44 +252,21 @@ public class NativeRmiProxy
     }
 
 
-    public void run() {
-        log("Setting up proxy");
+    public void start() {
+        log.info("Setting up proxy");
         setupProxy();
-        try {
-            eventSocket = new ServerSocket(32002, 0, getLocalHost());
-        }
-        catch(IOException ioEx) {
-            return;
-        }
-
-        try {
-            stillRunning = true;
-            while(stillRunning) {
-                readSocketCommand();
-            }
-
-            log("Packing up...");
-        }
-        finally {
-            if (eventSocket != null) {
-                try {
-                    eventSocket.close();
-                } catch (Exception e) {}
-            }
-            log("Socket closed");
-
-            try {
-                unregisterProxy();
-            } catch (Exception e) {}
-        }
     }
 
     public void stop() {
-        stillRunning = false;
+        try {
+            unregisterProxy();
+        } catch (Exception e) {
+            log.warn("Exception unregistering proxy:", e);
+        }
     }
 
     public static void main(String[] args) {
         //String targetRmiName, String stubClass
-        new Thread(new NativeRmiProxy("//10.10.1.123:1200/server")).start();
+        new NativeRmiProxy("//10.10.1.123:1200/server").start();
     }
 }
