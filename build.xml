@@ -122,7 +122,7 @@
     </javac>
   </target>
 
-  <target name="test-all" depends="build-rmi-tests"
+  <target name="test" depends="build-rmi-tests"
           description="Run all JUnit tests">
     <junit
         printsummary="yes"
