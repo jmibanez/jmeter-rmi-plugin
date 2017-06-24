@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<project name="jmeter-rmi-plugin" default="help" basedir="./">
-  <description>Jakarta JMeter RMI protocol plugin</description>
+<project
+    xmlns:ivy="antlib:org.apache.ivy.ant"
+    xmlns:checkstyle="antlib:com.puppycrawl.tools.checkstyle"
+    xmlns:sonar="antlib:org.sonar.ant"
+    xmlns:unless="ant:unless"
+    name="jmeter-rmi-plugin" default="help" basedir="./">
+  <description>Apache JMeter RMI protocol plugin</description>
 
   <property file="${user.home}/.${ant.project.name}-build.properties" />
   <property file="${user.home}/.build.properties"/>
@@ -9,37 +14,66 @@
 
   <property name="source.directory" location="src" />
   <property name="test.directory"   location="test" />
-  <property name="lib.directory"    location="lib" />
 
   <property name="build.directory" location="build/main" />
   <property name="build.test.directory" location="build/test" />
   <property name="dist.directory" location="build/" />
 
-  <path id="compiler.classpath">
-    <pathelement location="${jmeter.home}/lib/ext" />
-    <fileset dir="${jmeter.home}/lib/ext">
-      <include name="*.jar" />
-      <exclude name="ApacheJMeter_rmi.jar" /> <!-- Don't get ourselves confused! -->
-    </fileset>
-    <fileset dir="${jmeter.home}/lib">
-      <include name="*.jar" />
-    </fileset>
-    <fileset dir="${lib.directory}">
-      <include name="*.jar" />
-    </fileset>
+  <path id="base.lib">
+    <fileset
+        dir="bootstrap-lib"
+        includes="**/*.jar" />
   </path>
-  <path id="runtime.classpath" >
-    <path refid="compiler.classpath" />
-    <pathelement location="${build.directory}" />
-    <pathelement location="." />
-    <fileset dir="${jmeter.home}/lib">
-      <include name="*.jar" />
-    </fileset>
+
+  <path id="production.lib">
+    <path refid="base.lib" />
+    <fileset
+        dir="lib/production"
+        includes="**/*.jar" />
   </path>
+
+  <path id="development.lib">
+    <path refid="base.lib" />
+    <fileset
+        dir="lib/development"
+        includes="**/*.jar" />
+  </path>
+
+  <path id="test.lib">
+    <path refid="base.lib" />
+    <fileset
+        dir="lib/test"
+        includes="**/*.jar" />
+  </path>
+
+  <path id="fitnesse.test.lib">
+    <path refid="base.lib" />
+    <path refid="test.lib" />
+    <fileset
+        dir="lib/fitnesse-test"
+        includes="**/*.jar" />
+  </path>
+
+  <path id="sonar.lib">
+    <path refid="base.lib" />
+    <fileset
+        dir="lib/sonar"
+        includes="**/*.jar" />
+  </path>
+
+  <taskdef
+      resource="org/apache/ivy/ant/antlib.xml"
+      uri="antlib:org.apache.ivy.ant"
+      classpathref="base.lib" />
+  <ivy:settings file="ivysettings.xml" />
+
+  <target name="bootstrap">
+    <ivy:retrieve pattern="lib/[conf]/[artifact].[ext]" />
+  </target>
 
   <target name="help">
     <echo>
-      Builds the Jakarta JMeter RMI protocol plugin.
+      Builds the Apache JMeter RMI protocol plugin.
       See -projecthelp for build targets.
     </echo>
   </target>
@@ -58,13 +92,16 @@
           description="Build the RMI components">
     <javac srcdir="${source.directory}"
            destdir="${build.directory}"
+           fork="true"
+           includeantruntime="false"
            debug="${build.debug}"
            debuglevel="${build.debuglevel}"
            source="1.7"
            target="1.7">
-      <!-- compilerarg line="${build.compiler.args}" / -->
       <compilerarg line="-Xlint:deprecation -Xlint:unchecked" />
-      <classpath refid="compiler.classpath" />
+      <classpath>
+        <path refid="development.lib" />
+      </classpath>
     </javac>
   </target>
 
@@ -74,31 +111,48 @@
     <javac srcdir="${test.directory}"
            destdir="${build.test.directory}"
            debug="${build.debug}"
-           debuglevel="${build.debuglevel}">
+           debuglevel="${build.debuglevel}"
+           includeantruntime="false">
       <!-- compilerarg line="${build.compiler.args}" / -->
       <compilerarg line="-Xlint:deprecation -Xlint:unchecked" />
       <classpath>
-        <path refid="compiler.classpath" />
-        <pathelement path="${build.directory}" />
+        <path refid="test.lib" />
+        <pathelement location="${build.directory}" />
       </classpath>
     </javac>
   </target>
 
-  <target name="test-all" depends="build-rmi-tests" 
+  <target name="test-all" depends="build-rmi-tests"
           description="Run all JUnit tests">
-    <mkdir dir="${build.test.directory}/data" />		
-    <junit fork="yes" printsummary="withOutAndErr" forkmode="perBatch" haltonfailure="yes" dir="${build.test.directory}/data">
+    <junit
+        printsummary="yes"
+        haltonfailure="no"
+        failureproperty="tests.failed"
+        fork="yes"
+        forkmode="once">
       <classpath>
-        <path refid="compiler.classpath" />
-        <pathelement path="${build.directory}" />
-        <pathelement path="${build.test.directory}" />
+        <path refid="test.lib" />
+        <pathelement location="${build.directory}" />
+        <pathelement location="${build.test.directory}" />
       </classpath>
-      <formatter type="plain" />
+
       <formatter type="xml" />
-      <batchtest todir="${build.test.directory}/data" haltonfailure="yes">
-        <fileset dir="${build.test.directory}" includes="**/*Test.class" />
+      <batchtest todir="${build.test.directory}">
+        <fileset dir="${build.test.directory}">
+          <include name="**/*Test.class"/>
+          <include name="**/*Suite.class"/>
+          <exclude name="fixture/**" />
+          <exclude name="**/Base*.class" />
+        </fileset>
       </batchtest>
     </junit>
+    <junitreport todir="build/test">
+      <fileset dir="build/test" includes="TEST-*.xml" />
+      <report format="frames" todir="${build.test.directory}/html" />
+    </junitreport>
+    <fail if="tests.failed">
+      One or more tests failed. Open build/test/html/index.html for details
+    </fail>
   </target>
 
   <target name="jar" depends="build-rmi"

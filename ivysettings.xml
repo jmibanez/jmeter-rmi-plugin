@@ -1,0 +1,31 @@
+<ivysettings>
+  <settings defaultResolver="default"/>
+  <resolvers>
+    <ibiblio
+        name="mavenCentral"
+        m2compatible="true"
+        root="http://repo1.maven.org/maven2/"
+        />
+
+    <filesystem
+        name="local-m2"
+        m2compatible="true">
+      <artifact
+          pattern="${user.home}/.m2/repository/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+          />
+    </filesystem>
+
+    <filesystem
+        name="local-m2-publish"
+        m2compatible="true">
+      <artifact
+          pattern="${user.home}/.m2/repository/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+          />
+    </filesystem>
+
+    <chain name="default" returnFirst="true">
+      <resolver ref="local-m2" />
+      <resolver ref="mavenCentral" />
+    </chain>
+  </resolvers>
+</ivysettings>
