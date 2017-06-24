@@ -95,7 +95,6 @@
            fork="true"
            includeantruntime="false"
            debug="${build.debug}"
-           debuglevel="${build.debuglevel}"
            source="1.7"
            target="1.7">
       <compilerarg line="-Xlint:deprecation -Xlint:unchecked" />
@@ -111,7 +110,6 @@
     <javac srcdir="${test.directory}"
            destdir="${build.test.directory}"
            debug="${build.debug}"
-           debuglevel="${build.debuglevel}"
            includeantruntime="false">
       <!-- compilerarg line="${build.compiler.args}" / -->
       <compilerarg line="-Xlint:deprecation -Xlint:unchecked" />
