@@ -195,7 +195,7 @@ script like so:
 
 ```
     Object ret = prev.getReturnValue();
-    com.orangeandbronze.tools.jmeter.InstanceRegistry reg = vars.getObject("RMIRemoteObject.instances");
+    com.jmibanez.tools.jmeter.InstanceRegistry reg = vars.getObject("RMIRemoteObject.instances");
     // REPLACE_ME: name of remote in registry 
     // ret: actual object path to Remote
     if (reg.getTarget("myRemote") == null) {
