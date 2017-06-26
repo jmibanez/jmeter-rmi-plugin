@@ -183,6 +183,7 @@ public class RMISampler
 
         log.debug("Getting arguments");
         Object[] args = getArguments();
+        res.connectEnd();
 
         log.debug("Getting target");
         String targetName = getTargetName();
