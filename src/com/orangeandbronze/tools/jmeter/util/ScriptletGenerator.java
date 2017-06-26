@@ -210,7 +210,7 @@ public class ScriptletGenerator {
         // Handle types
         // Array: Unpack
         if(beanType.isArray()) {
-            return unpackArray(varname, bean);
+            return unpackArray(varname, bean, beanType.getComponentType());
         }
 
         // Collection: Unpack, depending on type
@@ -234,7 +234,8 @@ public class ScriptletGenerator {
            || beanType == Integer.class
            || beanType == Long.class
            || beanType == Float.class
-           || beanType == Double.class) {
+           || beanType == Double.class
+           || beanType == String.class) {
             return new String[] { primitiveAsScriptlet(varname, bean), "" };
         }
 
@@ -280,52 +281,82 @@ public class ScriptletGenerator {
     }
 
 
-    private String primitiveAsScriptlet(String varname, Object pInstance) {
-        assert pInstance != null : "pInstance cannot be null";
-
-        String pTypeString = null;
-        String pTypeVal    = pInstance.toString();
-
-        Class primitiveClass = pInstance.getClass();
+    private String typeDeclarationForPrimitive(Class<?> primitiveClass) {
 
         if(primitiveClass == boolean.class
            || primitiveClass == Boolean.class) {
-            pTypeString = "boolean";
+            return "boolean";
         }
 
         if(primitiveClass == char.class
            || primitiveClass == Character.class) {
-            pTypeString = "char";
-            pTypeVal = characterAsScriptlet(pInstance);
+            return "char";
         }
 
         if(primitiveClass == byte.class
            || primitiveClass == Byte.class) {
-            pTypeString = "byte";
+            return "byte";
         }
         if(primitiveClass == short.class
            || primitiveClass == Short.class) {
-            pTypeString = "short";
+            return "short";
         }
         if(primitiveClass == int.class
            || primitiveClass == Integer.class) {
-            pTypeString = "int";
+            return "int";
         }
         if(primitiveClass == long.class
            || primitiveClass == Long.class) {
-            pTypeString = "long";
-            pTypeVal    = pInstance.toString().contains("L") ? pInstance.toString() : pInstance.toString() + "L";
+            return "long";
         }
         if(primitiveClass == float.class
            || primitiveClass == Float.class) {
-            pTypeString = "float";
-            pTypeVal    = pInstance.toString().contains("f") ? pInstance.toString() : pInstance.toString() + "f";
+            return "float";
         }
         if(primitiveClass == double.class
            || primitiveClass == Double.class) {
-            pTypeString = "double";
-            pTypeVal    = pInstance.toString().contains("d") ? pInstance.toString() : pInstance.toString() + "d";
+            return "double";
         }
+        if(primitiveClass == String.class) {
+            return "String";
+        }
+        return null;
+    }
+
+    private String scriptletValueForPrimitive(Object pInstance) {
+        Class<?> primitiveClass = pInstance.getClass();
+
+        if(primitiveClass == char.class
+           || primitiveClass == Character.class) {
+            return characterAsScriptlet(pInstance);
+        }
+
+        if(primitiveClass == long.class
+           || primitiveClass == Long.class) {
+            return pInstance.toString().contains("L") ? pInstance.toString() : pInstance.toString() + "L";
+        }
+        if(primitiveClass == float.class
+           || primitiveClass == Float.class) {
+            return pInstance.toString().contains("f") ? pInstance.toString() : pInstance.toString() + "f";
+        }
+        if(primitiveClass == double.class
+           || primitiveClass == Double.class) {
+            return pInstance.toString().contains("d") ? pInstance.toString() : pInstance.toString() + "d";
+        }
+        if(primitiveClass == String.class) {
+            return stringAsScriptlet((String) pInstance);
+        }
+
+        return pInstance.toString();
+    }
+
+    private String primitiveAsScriptlet(String varname, Object pInstance) {
+        assert pInstance != null : "pInstance cannot be null";
+
+        Class<?> primitiveClass = pInstance.getClass();
+
+        String pTypeString = typeDeclarationForPrimitive(primitiveClass);
+        String pTypeVal    = scriptletValueForPrimitive(pInstance);
 
         if(pTypeString != null) {
             return pTypeString + " " + varname + " = " + pTypeVal + ";\n";
@@ -351,26 +382,79 @@ public class ScriptletGenerator {
         return StringEscapeUtils.escapeJava(value);
     }
 
-    private String[] unpackArray(String varname, Object arrayBean) {
+    private String[] unpackPrimitiveArray(String varname, Object pArrayBean,
+                                          Class<?> elementType) {
+        StringBuilder scr = new StringBuilder();
+        int arrLen = Array.getLength(pArrayBean);
+
+        String pTypeString = typeDeclarationForPrimitive(elementType);
+
+        scr.append(pTypeString);
+        scr.append("[] ");
+        scr.append(varname);
+        scr.append(" = new ");
+        scr.append(pTypeString);
+        scr.append("[] { ");
+
+        for(int i = 0; i < arrLen; i++) {
+            scr.append(scriptletValueForPrimitive(Array.get(pArrayBean, i)));
+
+            if(i != arrLen - 1) {
+                scr.append(", ");
+            }
+        }
+
+        scr.append(" };");
+
+        return new String[] { "", scr.toString() };
+    }
+
+    private String[] unpackArray(String varname, Object arrayBean,
+                                 Class<?> elementType) {
         StringBuilder elementScr = new StringBuilder();
         StringBuilder arrayScr = new StringBuilder();
         int arrLen = Array.getLength(arrayBean);
 
+        // Special case: primitives
+        if(elementType == boolean.class
+           || elementType == char.class
+           || elementType == byte.class
+           || elementType == short.class
+           || elementType == int.class
+           || elementType == long.class
+           || elementType == float.class
+           || elementType == double.class
+           || elementType == Character.class
+           || elementType == Byte.class
+           || elementType == Short.class
+           || elementType == Boolean.class
+           || elementType == Integer.class
+           || elementType == Long.class
+           || elementType == Float.class
+           || elementType == Double.class
+           || elementType == String.class) {
+            return unpackPrimitiveArray(varname, arrayBean, elementType);
+        }
+
         for(int i = 0; i < arrLen; i++) {
             Object o = Array.get(arrayBean, i);
-            String[] eScriptlet = scriptletForObject(varname + "_element" + i, o, Object.class);
+            String[] eScriptlet = scriptletForObject(varname + "_element" + i, o,
+                                                     elementType);
             if(!eScriptlet[0].equals("")) {
                 elementScr.append(eScriptlet[0]);
             }
-            
+
             if(!eScriptlet[1].equals("")) {
                 arrayScr.append(eScriptlet[1]);
             }
         }
 
-        arrayScr.append("Object[] ");
+        arrayScr.append(elementType.getCanonicalName());
+        arrayScr.append("[] ");
         arrayScr.append(varname);
-        arrayScr.append(" = new Object[] { ");
+        arrayScr.append(" = new ");
+        arrayScr.append(elementType.getCanonicalName());
+        arrayScr.append("[] { ");
         for(int i = 0; i < arrLen; i++) {
             arrayScr.append(varname);
             arrayScr.append("_element");
