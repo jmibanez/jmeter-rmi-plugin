@@ -39,7 +39,7 @@ public class RMIRemoteObjectConfig
     public static final String TARGET_RMI_NAME = "RmiRemoteObjectConfig.target_rmi_name";
     public static final String REMOTE_INSTANCES = "RMIRemoteObject.instances";
 
-    private static Log log = LogFactory.getLog(RMISampler.class);
+    private static Log log = LogFactory.getLog(RMIRemoteObjectConfig.class);
 
     /**
      * Creates a new <code>RMIRemoteObjectConfig</code> instance.
