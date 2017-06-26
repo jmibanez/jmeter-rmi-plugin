@@ -177,6 +177,7 @@ public class RMISampler
     protected SampleResult sample() {
         log.debug("Sample called");
         RMISampleResult res = new RMISampleResult();
+        res.sampleStart();
 
         RMIRemoteObjectConfig remoteObj = getRemoteObjectConfig();
 
@@ -203,7 +204,7 @@ public class RMISampler
 
             // Assume success
             res.setSuccessful(true);
-            res.sampleStart();
+            res.latencyEnd();
             Object retval = m.invoke(target, args);
 
             res.sampleEnd();
