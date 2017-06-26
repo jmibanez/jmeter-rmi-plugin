@@ -97,8 +97,6 @@ public class RMISampler
     }
 
     public void testEnded(final String host) {
-        JMeterContext jmctx = JMeterContextService.getContext();
-        jmctx.getVariables().remove(BSH_INTERPRETER);
     }
 
     public void setTargetName(final String value) {
