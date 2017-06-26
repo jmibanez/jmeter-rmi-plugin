@@ -14,7 +14,7 @@ import java.rmi.Naming;
 import java.util.HashMap;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import org.apache.jmeter.testelement.TestStateListener;
+import org.apache.jmeter.testelement.ThreadListener;
 import org.apache.jmeter.testelement.property.StringProperty;
 import com.orangeandbronze.tools.jmeter.gui.RMIRemoteObjectConfigGUI;
 import java.lang.reflect.Method;
@@ -34,12 +34,10 @@ import org.apache.commons.logging.LogFactory;
  */
 public class RMIRemoteObjectConfig
     extends ConfigTestElement
-    implements TestStateListener {
+    implements ThreadListener {
 
     public static final String TARGET_RMI_NAME = "RmiRemoteObjectConfig.target_rmi_name";
     public static final String REMOTE_INSTANCES = "RMIRemoteObject.instances";
-
-    private transient RemoteRegistry registry;
 
     private static Log log = LogFactory.getLog(RMISampler.class);
 
@@ -67,25 +65,17 @@ public class RMIRemoteObjectConfig
         getRegistry().setArgumentTypes(targetName, methodName, argTypes);
     }
 
-    public void testStarted() {
-        testStarted(null);
-    }
-
-    public void testStarted(final String host) {
-        log.info("Configuring remote stub registry");
-        registry = new RemoteRegistry();
+    public void threadStarted() {
+        log.info("Configuring remote stub registry for thread");
+        RemoteRegistry registry = new RemoteRegistry();
         JMeterContext jmctx = JMeterContextService.getContext();
+        if(jmctx.getVariables().getObject(REMOTE_INSTANCES) != null) {
+            log.fatal("Thread context already has a registry???", new Throwable());
+        }
         jmctx.getVariables().putObject(REMOTE_INSTANCES, registry);
     }
 
-    public void testEnded() {
-        testEnded(null);
-    }
-
-    public void testEnded(final String host) {
-        log.info("Removing remote stub registry");
-        JMeterContext jmctx = JMeterContextService.getContext();
-        jmctx.getVariables().remove(REMOTE_INSTANCES);
+    public void threadFinished() {
     }
 
     public Remote getTarget(final String targetName) {
@@ -117,11 +107,8 @@ public class RMIRemoteObjectConfig
     }
 
     private RemoteRegistry getRegistry() {
-        if (registry == null) {
-            JMeterContext jmctx = JMeterContextService.getContext();
-            registry = (RemoteRegistry) jmctx.getVariables().getObject(REMOTE_INSTANCES);
-        }
-
+        JMeterContext jmctx = JMeterContextService.getContext();
+        RemoteRegistry registry = (RemoteRegistry) jmctx.getVariables().getObject(REMOTE_INSTANCES);
         return registry;
     }
 
@@ -154,9 +141,15 @@ public class RMIRemoteObjectConfig
                 Map<String, Class[]> instanceMethodTypesMap = configureMethodBindings(instance);
                 methodTypesMap.put(key, instanceMethodTypesMap);
             }
+            else {
+                log.warn("Methods already registered: " + key);
+            }
             if (!instanceRef.containsKey(key)) {
                 instanceRef.put(key, instance);
                 assert (instanceRef.containsKey(key)): "Map should contain key";
+            }
+            else {
+                log.warn("Instance already registered: " + key);
             }
         }
 
