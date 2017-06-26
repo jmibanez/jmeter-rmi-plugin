@@ -130,7 +130,7 @@ public class RMIRemoteObjectConfig
         @Override
         public String registerRmiInstance(final String key, final Remote instance)
             throws RemoteException {
-            log.info("Register: " + key);
+            log.debug("Register: " + key);
             registerInstanceAtKey(key, instance);
             return key;
         }
