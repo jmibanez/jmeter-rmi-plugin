@@ -88,7 +88,7 @@ public class RMISampler
             argInterpreter.eval(getArgumentsScript());
         }
         catch(EvalError evalErr) {
-            log.info("Error initially evaluating script: " + evalErr.getMessage());
+            log.warn("Error initially evaluating script: " + evalErr.getMessage());
         }
     }
 
@@ -167,25 +167,25 @@ public class RMISampler
             return (Object[]) argInterpreter.eval("methodArgs();");
         }
         catch(EvalError evalErr) {
-            log.info(getMethodName() + ": Error evaluating script: " + evalErr.getMessage() + "; argInterpreter = " + argInterpreter);
-            evalErr.printStackTrace();
+            log.error(getMethodName() + ": Error evaluating script: " + evalErr.getMessage() + "; argInterpreter = " + argInterpreter,
+                      evalErr);
         }
 
         return null;
     }
 
     protected SampleResult sample() {
-        log.info("Sample called");
+        log.debug("Sample called");
         RMISampleResult res = new RMISampleResult();
 
         RMIRemoteObjectConfig remoteObj = getRemoteObjectConfig();
 
         String methodName = getMethodName();
 
-        log.info("Getting arguments");
+        log.debug("Getting arguments");
         Object[] args = getArguments();
 
-        log.info("Getting target");
+        log.debug("Getting target");
         String targetName = getTargetName();
         Remote target = remoteObj.getTarget(targetName);
 
