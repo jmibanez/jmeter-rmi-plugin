@@ -282,48 +282,14 @@ public class ScriptletGenerator {
 
 
     private String typeDeclarationForPrimitive(Class<?> primitiveClass) {
-
-        if(primitiveClass == boolean.class
-           || primitiveClass == Boolean.class) {
-            return "boolean";
-        }
-
-        if(primitiveClass == char.class
-           || primitiveClass == Character.class) {
-            return "char";
-        }
-
-        if(primitiveClass == byte.class
-           || primitiveClass == Byte.class) {
-            return "byte";
-        }
-        if(primitiveClass == short.class
-           || primitiveClass == Short.class) {
-            return "short";
-        }
-        if(primitiveClass == int.class
-           || primitiveClass == Integer.class) {
-            return "int";
-        }
-        if(primitiveClass == long.class
-           || primitiveClass == Long.class) {
-            return "long";
-        }
-        if(primitiveClass == float.class
-           || primitiveClass == Float.class) {
-            return "float";
-        }
-        if(primitiveClass == double.class
-           || primitiveClass == Double.class) {
-            return "double";
-        }
-        if(primitiveClass == String.class) {
-            return "String";
-        }
-        return null;
+        return primitiveClass.getSimpleName();
     }
 
     private String scriptletValueForPrimitive(Object pInstance) {
+        if(pInstance == null) {
+            return null;
+        }
+
         Class<?> primitiveClass = pInstance.getClass();
 
         if(primitiveClass == char.class
