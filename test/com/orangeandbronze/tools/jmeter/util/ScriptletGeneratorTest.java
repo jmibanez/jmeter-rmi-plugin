@@ -216,6 +216,62 @@ public class ScriptletGeneratorTest extends TestCase {
         }
     }
 
+    public void testGeneratePrimitiveArrayScriptletWithNullValues()
+        throws Exception {
+        Integer[] testArr = new Integer[] { 0, 1, null };
+
+        String scriptlet = inst.generateScriptletForObject(testArr, "arr");
+
+        assertNotNull(scriptlet);
+
+        bshInterpreter.eval(scriptlet);
+        Object arrayFromBsh = bshInterpreter.get("arr");
+        Class<?> arrayFromBshClass = arrayFromBsh.getClass();
+
+        assertTrue(arrayFromBshClass.isArray());
+        assertEquals(Integer.class,
+                     arrayFromBshClass.getComponentType());
+
+        Integer[] fromBsh = (Integer[]) arrayFromBsh;
+        assertEquals(testArr.length, fromBsh.length);
+        for (int i = 0; i < testArr.length; i++) {
+            assertEquals(testArr[i], fromBsh[i]);
+        }
+    }
+
+    public void testGenerateScriptletForArrayWithProperTypeNullValues()
+        throws Exception {
+        SimpleBeanInstance a = new SimpleBeanInstance();
+        a.setName("Simple\nString with \"quotes\" and a \0 null (A)");
+        a.setAge(40);
+        a.c = '\n';
+
+        SimpleBeanInstance b = new SimpleBeanInstance();
+        b.setName("Simple\nString with \"quotes\" and a \0 null (B)");
+        b.setAge(41);
+        b.c = '\t';
+
+        SimpleBeanInstance[] testArr = new SimpleBeanInstance[] { a, b, null };
+
+        String scriptlet = inst.generateScriptletForObject(testArr, "arr");
+
+        assertNotNull(scriptlet);
+
+        bshInterpreter.eval(scriptlet);
+        Object arrayFromBsh = bshInterpreter.get("arr");
+        Class<?> arrayFromBshClass = arrayFromBsh.getClass();
+
+        assertTrue(arrayFromBshClass.isArray());
+        assertEquals(SimpleBeanInstance.class,
+                     arrayFromBshClass.getComponentType());
+
+        SimpleBeanInstance[] fromBsh = (SimpleBeanInstance[]) arrayFromBsh;
+        assertEquals(testArr.length, fromBsh.length);
+        for (int i = 0; i < testArr.length; i++) {
+            assertEquals(testArr[i], fromBsh[i]);
+        }
+    }
+
 
     public static class SimpleBeanInstance
     {
