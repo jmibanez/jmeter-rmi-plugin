@@ -16,7 +16,7 @@ import org.apache.commons.logging.LogFactory;
 import java.rmi.server.RemoteObject;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
-import org.apache.jmeter.testelement.TestStateListener;
+import org.apache.jmeter.testelement.ThreadListener;
 import org.apache.jmeter.testelement.property.ObjectProperty;
 import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.testelement.property.NullProperty;
@@ -39,19 +39,20 @@ import org.apache.jmeter.threads.JMeterVariables;
  */
 public class RMISampler
     extends AbstractSampler
-    implements TestStateListener {
+    implements ThreadListener {
 
     public static final String REMOTE_OBJECT_CONFIG = "RMISampler.remote_object_config";
     public static final String TARGET_NAME = "RMISampler.target_name";
     public static final String METHOD_NAME = "RMISampler.method_name";
     public static final String ARGUMENTS = "RMISampler.method_arguments";
     public static final String ARG_SCRIPT = "RMISampler.method_arguments_script";
-    public static final String BSH_INTERPRETER = "RMISampler.interpreter";
 
     public static final String IGNORE_EXCEPTIONS = "RMISampler.ignore_exceptions";
 
     private static Log log = LogFactory.getLog(RMISampler.class);
 
+
+    private ThreadLocal<Interpreter> interpreter = new ThreadLocal<Interpreter>();
 
     /**
      * Creates a new <code>RMISampler</code> instance.
@@ -73,32 +74,19 @@ public class RMISampler
         }
     }
 
-    public void testStarted() {
-        testStarted(null);
-    }
-
-    public void testStarted(final String host) {
+    public void threadStarted() {
         Interpreter argInterpreter = new Interpreter();
-        JMeterProperty bshProp = new ObjectProperty(BSH_INTERPRETER,
-                                                    argInterpreter);
-        setProperty(bshProp);
-        setTemporary(bshProp);
-
+        interpreter.set(argInterpreter);
         try {
             argInterpreter.eval(getArgumentsScript());
         }
         catch(EvalError evalErr) {
-            log.info("Error initially evaluating script: " + evalErr.getMessage());
+            log.warn("Error initially evaluating script: " + evalErr.getMessage());
         }
     }
 
-    public void testEnded() {
-        testEnded(null);
-    }
-
-    public void testEnded(final String host) {
-        JMeterContext jmctx = JMeterContextService.getContext();
-        jmctx.getVariables().remove(BSH_INTERPRETER);
+    public void threadFinished() {
+        interpreter.remove();
     }
 
     public void setTargetName(final String value) {
@@ -167,25 +155,27 @@ public class RMISampler
             return (Object[]) argInterpreter.eval("methodArgs();");
         }
         catch(EvalError evalErr) {
-            log.info(getMethodName() + ": Error evaluating script: " + evalErr.getMessage() + "; argInterpreter = " + argInterpreter);
-            evalErr.printStackTrace();
+            log.error(getMethodName() + ": Error evaluating script: " + evalErr.getMessage() + "; argInterpreter = " + argInterpreter,
+                      evalErr);
         }
 
         return null;
     }
 
     protected SampleResult sample() {
-        log.info("Sample called");
+        log.debug("Sample called");
         RMISampleResult res = new RMISampleResult();
+        res.sampleStart();
 
         RMIRemoteObjectConfig remoteObj = getRemoteObjectConfig();
 
         String methodName = getMethodName();
 
-        log.info("Getting arguments");
+        log.debug("Getting arguments");
         Object[] args = getArguments();
+        res.connectEnd();
 
-        log.info("Getting target");
+        log.debug("Getting target");
         String targetName = getTargetName();
         Remote target = remoteObj.getTarget(targetName);
 
@@ -203,7 +193,7 @@ public class RMISampler
 
             // Assume success
             res.setSuccessful(true);
-            res.sampleStart();
+            res.latencyEnd();
             Object retval = m.invoke(target, args);
 
             res.sampleEnd();
@@ -252,7 +242,7 @@ public class RMISampler
     }
 
     private Interpreter getInterpreter() {
-        return (Interpreter) getProperty(BSH_INTERPRETER).getObjectValue();
+        return interpreter.get();
     }
 
     public String toString() {
