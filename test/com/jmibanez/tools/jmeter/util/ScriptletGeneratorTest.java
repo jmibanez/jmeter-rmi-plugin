@@ -71,7 +71,7 @@ public class ScriptletGeneratorTest extends TestCase {
 
         List l = new ArrayList();
         l.add(simple);
-        
+
         SimpleBeanInstance simple2 = new SimpleBeanInstance();
         simple2.setName("Simple\nString with \"quotes\" and a \0 null");
         simple2.setAge(42);
@@ -270,6 +270,20 @@ public class ScriptletGeneratorTest extends TestCase {
         for (int i = 0; i < testArr.length; i++) {
             assertEquals(testArr[i], fromBsh[i]);
         }
+    }
+
+    public void testGetVariableNameForType()
+        throws Exception {
+        assertEquals("args", inst.getVariableNameForType(null));
+
+        assertEquals("simpleBeanInstance",
+                     inst.getVariableNameForType(new SimpleBeanInstance()));
+        assertEquals("arrayList",
+                     inst.getVariableNameForType(new ArrayList<Object>()));
+        assertEquals("objectArray",
+                     inst.getVariableNameForType(new Object[0]));
+        assertEquals("intArray",
+                     inst.getVariableNameForType(new int[0]));
     }
 
 

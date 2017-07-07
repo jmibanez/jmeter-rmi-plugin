@@ -50,6 +50,22 @@ public class ScriptletGenerator {
         return scriptletAndDecl[0] + "\n// -------------------------------\n\n" + scriptletAndDecl[1];
     }
 
+    public String getVariableNameForType(final Object bean) {
+        if(bean == null) {
+            return "args";
+        }
+
+        Class<?> beanClass = bean.getClass();
+        String className = beanClass.getSimpleName();
+
+        if(beanClass.isArray()) {
+            Class<?> elementClass = beanClass.getComponentType();
+            className = elementClass.getSimpleName() + "Array";
+        }
+
+        return Introspector.decapitalize(className);
+    }
+
     private String[] scriptletFromIntrospection(Object bean, String varname)
         throws IntrospectionException {
         StringBuilder decl = new StringBuilder();
