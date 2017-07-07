@@ -178,6 +178,47 @@ public class ScriptletGeneratorTest extends TestCase {
         }
     }
 
+    public void testGenerateScriptletForList()
+        throws Exception {
+        SimpleBeanInstance a = new SimpleBeanInstance();
+        a.setName("Simple\nString with \"quotes\" and a \0 null (A)");
+        a.setAge(40);
+        a.c = '\n';
+
+        SimpleBeanInstance b = new SimpleBeanInstance();
+        b.setName("Simple\nString with \"quotes\" and a \0 null (B)");
+        b.setAge(41);
+        b.c = '\t';
+
+        SimpleBeanInstance c = new SimpleBeanInstance();
+        c.setName("Simple\nString with \"quotes\" and a \0 null (C)");
+        c.setAge(42);
+        c.c = '?';
+
+        List<SimpleBeanInstance> testList = new ArrayList<>();
+        testList.add(a);
+        testList.add(b);
+        testList.add(c);
+
+        String scriptlet = inst.generateScriptletForObject(testList, "list");
+
+        assertNotNull(scriptlet);
+        System.out.println(scriptlet);
+
+        bshInterpreter.eval(scriptlet);
+        Object listFromBsh = bshInterpreter.get("list");
+        Class<?> listFromBshClass = listFromBsh.getClass();
+
+        assertTrue(List.class.isAssignableFrom(listFromBshClass));
+
+        // No way to recover collection element types, unfortunately
+        List fromBsh = (List) listFromBsh;
+        assertEquals(testList.size(), fromBsh.size());
+        for (int i = 0; i < testList.size(); i++) {
+            assertEquals(testList.get(i), fromBsh.get(i));
+        }
+    }
+
     public void testGenerateScriptletForArrayWithProperType()
         throws Exception {
         SimpleBeanInstance a = new SimpleBeanInstance();

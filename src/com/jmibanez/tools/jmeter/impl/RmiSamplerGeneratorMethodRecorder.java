@@ -88,19 +88,22 @@ public class RmiSamplerGeneratorMethodRecorder
         sb.append(genKey);
         sb.append("'\n");
         sb.append("setAccessibility(true);\nmethodArgs ( ) {\n");
+
+        String[] argVarnames = new String[args.length];
         for(int i = 0; i < args.length; i++) {
             if(args[i] == null) {
                 continue;
             }
 
-            sb.append(gen.generateScriptletForObject(args[i], "args" + i, argTypes[i]));
+            argVarnames[i] = gen.getVariableNameForType(args[i]) + i;
+            sb.append(gen.generateScriptletForObject(args[i], argVarnames[i],
+                                                     argTypes[i]));
         }
 
         sb.append("Object[] args = new Object[] { ");
         for(int i = 0; i < args.length; i++) {
             if(args[i] != null) {
-                sb.append("args");
-                sb.append(i);
+                sb.append(argVarnames[i]);
             }
             else {
                 sb.append("null");
