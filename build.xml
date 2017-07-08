@@ -162,7 +162,7 @@
       <manifest>
         <attribute name="Project-Name" value="JMeter RMI protocol plugin" />
         <attribute name="Built-By" value="${user.name}" />
-	<attribute name="Main-Class" value="com.orangeandbronze.tools.jmeter.NativeRmiProxy" />
+	<attribute name="Main-Class" value="com.jmibanez.tools.jmeter.NativeRmiProxy" />
       </manifest>
     </jar>
   </target>

@@ -1,6 +1,6 @@
 <ivy-module version="2.0">
   <info
-      organisation="com.orangeandbronze.tools"
+      organisation="com.jmibanez.tools"
       module="jmeter-rmi-plugin"
       revision="0.1"/>
 
