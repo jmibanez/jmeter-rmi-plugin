@@ -2,3 +2,11 @@ language: java
 jdk:
   - oraclejdk8
 install: ant bootstrap
+script: ant clean test jar
+deploy:
+  provider: releases
+  api_key: "3964a41d5651a40cde25708e196749a7f2d70ef8"
+  file: "build/ApacheJMeter_rmi.jar"
+  skip_cleanup: true
+  on:
+    tags: true
