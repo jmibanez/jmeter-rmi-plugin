@@ -16,10 +16,12 @@ import java.beans.IntrospectionException;
 import java.util.Collection;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Properties;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -48,6 +50,22 @@ public class ScriptletGenerator {
     public String generateScriptletForObject(Object bean, String varname, Class varTypeHint) {
         String[] scriptletAndDecl = scriptletForObject(varname, bean, varTypeHint);
         return scriptletAndDecl[0] + "\n// -------------------------------\n\n" + scriptletAndDecl[1];
+    }
+
+    public String getVariableNameForType(final Object bean) {
+        if(bean == null) {
+            return "args";
+        }
+
+        Class<?> beanClass = bean.getClass();
+        String className = beanClass.getSimpleName();
+
+        if(beanClass.isArray()) {
+            Class<?> elementClass = beanClass.getComponentType();
+            className = elementClass.getSimpleName() + "Array";
+        }
+
+        return Introspector.decapitalize(className);
     }
 
     private String[] scriptletFromIntrospection(Object bean, String varname)
@@ -271,7 +289,11 @@ public class ScriptletGenerator {
 
         String[] scr = scriptletFromFields(bean, varname);
         decl.append("\n");
-        decl.append("// ----------  Field values\n");
+        decl.append("// ----------  Field values for ");
+        decl.append(beanType.getSimpleName());
+        decl.append(" ");
+        decl.append(varname);
+        decl.append("\n");
         decl.append(scr[0]);
 
         scriptlet.append("\n");
@@ -402,9 +424,12 @@ public class ScriptletGenerator {
             return unpackPrimitiveArray(varname, arrayBean, elementType);
         }
 
+        String[] elementVarnames = new String[arrLen];
         for(int i = 0; i < arrLen; i++) {
             Object o = Array.get(arrayBean, i);
-            String[] eScriptlet = scriptletForObject(varname + "_element" + i, o,
+            elementVarnames[i] = varname + "_element" + i + "_"
+                + getVariableNameForType(o);
+            String[] eScriptlet = scriptletForObject(elementVarnames[i], o,
                                                      elementType);
             if(!eScriptlet[0].equals("")) {
                 elementScr.append(eScriptlet[0]);
@@ -422,9 +447,7 @@ public class ScriptletGenerator {
         arrayScr.append(elementType.getCanonicalName());
         arrayScr.append("[] { ");
         for(int i = 0; i < arrLen; i++) {
-            arrayScr.append(varname);
-            arrayScr.append("_element");
-            arrayScr.append(i);
+            arrayScr.append(elementVarnames[i]);
             if(i != arrLen - 1) {
                 arrayScr.append(", ");
             }
@@ -449,13 +472,18 @@ public class ScriptletGenerator {
         }
 
         int i = 0;
+        List<String> elementVarnames = new ArrayList<>();
         for(Iterator ii = c.iterator(); ii.hasNext(); ) {
             Object o = ii.next();
-            String[] eScriptlet = scriptletForObject(varname + "_element" + i, o, Object.class);
+            String elementVarname = varname + "_element" + i + "_"
+                + getVariableNameForType(o);
+            elementVarnames.add(elementVarname);
+            String[] eScriptlet = scriptletForObject(elementVarname, o,
+                                                     Object.class);
             if(!eScriptlet[0].equals("")) {
                 elementScr.append(eScriptlet[0]);
             }
-            
+
             if(!eScriptlet[1].equals("")) {
                 cScr.append(eScriptlet[1]);
             }
@@ -471,16 +499,12 @@ public class ScriptletGenerator {
         cScr.append("();\n");
 
 
-        i = 0;
-        for(Iterator ii = c.iterator(); ii.hasNext(); ) {
-            ii.next();
+        for(Iterator<String> ii = elementVarnames.iterator(); ii.hasNext(); ) {
+            String elementVarname = ii.next();
             cScr.append(varname);
             cScr.append(".add(");
-            cScr.append(varname);
-            cScr.append("_element");
-            cScr.append(i);
+            cScr.append(elementVarname);
             cScr.append(");\n");
-            i++;
         }
 
         return new String[] { elementScr.toString(), cScr.toString() };
