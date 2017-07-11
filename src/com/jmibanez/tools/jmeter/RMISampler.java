@@ -28,6 +28,9 @@ import org.apache.jmeter.threads.JMeterContext;
 import org.apache.jmeter.threads.JMeterContextService;
 import org.apache.jmeter.threads.JMeterVariables;
 
+import static com.jmibanez.tools.jmeter.util.ArgumentsUtil.packArgs;
+import static com.jmibanez.tools.jmeter.util.ArgumentsUtil.unpackArgs;
+
 /**
  * Describe class RMISampler here.
  *
@@ -173,6 +176,18 @@ public class RMISampler
 
         log.debug("Getting arguments");
         Object[] args = getArguments();
+
+        // Pack and then unpack args, so we can safely measure
+        // serialized argument size
+        try {
+            byte[] argsPacked = packArgs(args);
+            args = unpackArgs(argsPacked);
+            res.setSentBytes(argsPacked.length);
+        }
+        catch (Exception packErr) {
+            log.warn(getMethodName() + ": Couldn't pack/unpack arguments to measure sent size: " + packErr.getMessage(),
+                     packErr);
+        }
         res.connectEnd();
 
         log.debug("Getting target");

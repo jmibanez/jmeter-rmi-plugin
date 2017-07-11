@@ -1,14 +1,16 @@
 package com.jmibanez.tools.jmeter;
 
 import java.lang.reflect.Method;
-import java.io.Serializable;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectOutputStream;
 import java.io.IOException;
-import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
+
+import static com.jmibanez.tools.jmeter.util.ArgumentsUtil.packArgs;
+import static com.jmibanez.tools.jmeter.util.ArgumentsUtil.unpackArgs;
+
 
 public class MethodCallRecord
     implements Serializable
@@ -36,7 +38,7 @@ public class MethodCallRecord
         this.argTypes = m.getParameterTypes();
         this.method = constructMethodName(m.getName(), this.argTypes);
         this.args = args;
-        packArgs();
+        this.argsPacked = packArgs(this.args);
     }
 
     public String getTarget() {
@@ -48,7 +50,7 @@ public class MethodCallRecord
     }
 
     public Object[] recreateArguments() {
-        unpackArgs();
+        this.args = unpackArgs(this.argsPacked);
         return args;
     }
 
@@ -167,33 +169,7 @@ public class MethodCallRecord
             throw new IllegalStateException("Invalid state in input stream: End of stream not found");
         }
 
-        unpackArgs();
-    }
-
-    private void packArgs() {
-        try {
-            ByteArrayOutputStream packOut = new ByteArrayOutputStream();
-            ObjectOutputStream ostream = new ObjectOutputStream(packOut);
-            ostream.writeObject(args);
-            argsPacked = packOut.toByteArray();
-        }
-        catch(IOException ign) {
-            throw new RuntimeException(ign);
-        }
-    }
-
-    private void unpackArgs() {
-        try {
-            ByteArrayInputStream packIn = new ByteArrayInputStream(argsPacked);
-            ObjectInputStream istream = new ObjectInputStream(packIn);
-            args = (Object[]) istream.readObject();
-        }
-        catch(IOException ign) {
-            throw new RuntimeException(ign);
-        }
-        catch(ClassNotFoundException cnfe) {
-            throw new RuntimeException(cnfe);
-        }
+        this.args = unpackArgs(this.argsPacked);
     }
 }
 
