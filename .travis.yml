@@ -1,0 +1,13 @@
+language: java
+jdk:
+  - oraclejdk8
+install: ant bootstrap
+script: ant clean test jar
+deploy:
+  provider: releases
+  api_key:
+    secure: ckxOBWEwcb/RCozQH8wvQMRWYugaevinvXSwvNhliL6AXcH63sbDaGZJj/EY72gxKRagBXr3NP7cjkSoko36aZBudGmB7JOjSA84Nbb+iPMIqMLl4UcdJGDSWOvvG+D2Qi98JPFldP2wWrKy1xK2rYTZt4mJCqUHCmYP6WbYZWqpGdjKU6vv/EPv34+ivN2UyqySAZMun8XR2U6AG+Pd48Q8qxhlBjAsHYEtgtOZXnH+64ykdCxMR2ImYyLv0mAzrI67NyAmx79wsPaZfYpMvjl/geny75tM36bXnkpT/vqolti8JEwePLYgEJRSKKKztSHfPGvcA1T5D9g+/yM0Z3oWrVKwE86qPQu6dSmWWwWIHEk5Np5lZZu9zZ56AUnrxw0Y9C0O7iPDew/oANT9h6OJg97/25xMghVG4D5dMhRx/vv4Izq8OlJBY0sbuUPXoM3eYwLpSp8p168+4p/MEiR1LzgCuBORR7haxMAUFO+ADzjbZqFoQfGbJ98wYTaOrMAWWgmMQ8ZOghXdp21nY4FdSqjbcHVD/Qtbf7bY8dEUEEfknlnnw+i58SuYHtFyVTsaDKv+51LpjF3e4/pT0KxQPfGofY4iPIVcHZwuGxaKIuj3FUYm7WKEOJliZeC18l8y2OPSyJ4E59Fa4MDozccfI9QDkYCr5+UIyku7i28=
+  file: build/ApacheJMeter_rmi.jar
+  skip_cleanup: true
+  on:
+    tags: true
