@@ -55,7 +55,7 @@ public class RMISampler
     private static Log log = LogFactory.getLog(RMISampler.class);
 
 
-    private ThreadLocal<Interpreter> interpreter = new ThreadLocal<Interpreter>();
+    private transient ThreadLocal<Interpreter> interpreter = new ThreadLocal<Interpreter>();
 
     /**
      * Creates a new <code>RMISampler</code> instance.
