@@ -95,8 +95,8 @@
            fork="true"
            includeantruntime="false"
            debug="${build.debug}"
-           source="1.7"
-           target="1.7">
+           source="1.8"
+           target="1.8">
       <compilerarg line="-Xlint:deprecation -Xlint:unchecked" />
       <classpath>
         <path refid="development.lib" />
