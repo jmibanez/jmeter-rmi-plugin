@@ -11,19 +11,18 @@ import org.apache.jmeter.control.GenericController;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.protocol.http.control.RecordingController;
 import org.apache.jmeter.testelement.WorkBench;
-import org.apache.log.Logger;
-//import org.apache.log4j.Logger;
 import org.apache.jmeter.gui.tree.JMeterTreeModel;
 import org.apache.jmeter.gui.GuiPackage;
 import java.util.Iterator;
 import java.util.List;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.jmeter.exceptions.IllegalUserActionException;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jmeter.testelement.property.StringProperty;
 import org.apache.jmeter.testelement.property.IntegerProperty;
 import com.jmibanez.tools.jmeter.gui.NativeRmiProxyControllerGui;
 import com.jmibanez.tools.jmeter.impl.RmiSamplerGeneratorMethodRecorder;
-import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jmeter.extractor.BeanShellPostProcessor;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.modifiers.BeanShellPreProcessor;
@@ -57,7 +56,7 @@ public class NativeRmiProxyController extends GenericController {
 
     public static final String BINDING_SCRIPT = "RmiProxy.binding_script";
 
-    private static Logger log = LoggingManager.getLoggerForClass(); // Logger.getLogger(NativeRmiProxyController.class);
+    private static Log log = LogFactory.getLog(NativeRmiProxyController.class);
 
     private JMeterTreeNode target;
 
