@@ -84,7 +84,7 @@ public class RMISampler
             argInterpreter.eval(getArgumentsScript());
         }
         catch(EvalError evalErr) {
-            log.warn("Error initially evaluating script: " + evalErr.getMessage());
+            log.warn(getName() + ": Error initially evaluating script: " + evalErr.getMessage());
         }
     }
 
@@ -157,7 +157,7 @@ public class RMISampler
             return (Object[]) argInterpreter.eval("methodArgs();");
         }
         catch(EvalError evalErr) {
-            log.error(getMethodName() + ": Error evaluating script: " + evalErr.getMessage() + "; argInterpreter = " + argInterpreter,
+            log.error(getName() + ": Error evaluating script: " + evalErr.getMessage() + "; argInterpreter = " + argInterpreter,
                       evalErr);
         }
 
@@ -184,7 +184,7 @@ public class RMISampler
             res.setSentBytes(argsPacked.length);
         }
         catch (Exception packErr) {
-            log.warn(getMethodName() + ": Couldn't pack/unpack arguments to measure sent size: " + packErr.getMessage(),
+            log.warn(getName() + ": Couldn't pack/unpack arguments to measure sent size: " + packErr.getMessage(),
                      packErr);
         }
         res.connectEnd();
@@ -260,6 +260,6 @@ public class RMISampler
     }
 
     public String toString() {
-        return super.toString() +  ": " +  getMethodName();
+        return super.toString() +  ": " +  getName();
     }
 }
