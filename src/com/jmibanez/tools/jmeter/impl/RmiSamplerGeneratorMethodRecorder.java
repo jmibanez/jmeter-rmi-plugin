@@ -149,6 +149,16 @@ public class RmiSamplerGeneratorMethodRecorder
         sampler.setProperty(TestElement.GUI_CLASS, RMISamplerGUI.class.getName());
         sampler.setTargetName(r.getTarget());
         sampler.setMethodName(r.getMethod());
+
+        String instanceName = r.getTarget();
+        if (instanceName == null) {
+            instanceName = "";
+        }
+        sampler.setName(String.format("[%1s] %2d - %3s",
+                                      instanceName,
+                                      r.getIndex(),
+                                      r.getMethod()));
+
         sampler.setArgumentsScript(createArgumentsScript(r));
 
         if(r.isRemoteReturned()) {
