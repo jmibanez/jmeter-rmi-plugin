@@ -11,11 +11,12 @@ import java.beans.BeanInfo;
 import java.beans.PropertyDescriptor;
 import java.beans.Introspector;
 import java.beans.IntrospectionException;
+import java.io.Serializable;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -216,6 +217,23 @@ public class ScriptletGenerator {
         return new String[] { decl.toString(), scriptlet.toString() };
     }
 
+
+    private void appendConstructorCallForClass(Class<?> beanType,
+                                               StringBuilder scriptlet) {
+        try {
+            beanType.getConstructor(new Class<?>[] { });
+            scriptlet.append("new ");
+            scriptlet.append(beanType.getCanonicalName());
+            scriptlet.append("();\n");
+        } catch (NoSuchMethodException ex) {
+            scriptlet.append("com.jmibanez.tools.jmeter.util.ReflectionUtil.newInstance(");
+            scriptlet.append(beanType.getCanonicalName());
+            scriptlet.append(".class); // WARNING: ");
+            scriptlet.append(beanType.getCanonicalName());
+            scriptlet.append(" has no default constructor, using Objenesis glue to build instance\n");
+        }
+    }
+
     /**
      * Generate a BeanShell scriptlet to recreate a particular bean
      * instance.
@@ -293,9 +311,8 @@ public class ScriptletGenerator {
         scriptlet.append(typeSignature);
         scriptlet.append(" ");
         scriptlet.append(varname);
-        scriptlet.append(" = new ");
-        scriptlet.append(beanType.getCanonicalName());
-        scriptlet.append("();\n");
+        scriptlet.append(" = ");
+        appendConstructorCallForClass(beanType, scriptlet);
 
         String[] scr = scriptletFromFields(bean, varname);
         decl.append("\n");
