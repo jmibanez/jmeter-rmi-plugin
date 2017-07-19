@@ -202,7 +202,7 @@ public class RMISampler
             Method m = targetClass.getMethod(actualMethodName, argTypes);
 
             res.setMethod(m);
-            res.setSampleLabel(methodName);
+            res.setSampleLabel(generateSampleLabel(targetName, methodName));
             res.setArguments(args);
 
             // Assume success
@@ -257,6 +257,16 @@ public class RMISampler
 
     private Interpreter getInterpreter() {
         return interpreter.get();
+    }
+
+    private String generateSampleLabel(final String targetName,
+                                       final String methodName) {
+        String instanceName = targetName;
+        if (instanceName == null) {
+            instanceName = "(root)";
+        }
+
+        return String.format("%1s : %2s", instanceName, methodName);
     }
 
     public String toString() {
