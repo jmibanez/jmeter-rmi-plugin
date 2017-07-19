@@ -110,7 +110,6 @@ public class RMISampler
 
     public void setMethodName(String value) {
         setProperty(METHOD_NAME, value);
-        setName(value);
     }
 
     public String getMethodName() {
