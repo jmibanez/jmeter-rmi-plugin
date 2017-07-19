@@ -23,6 +23,9 @@ import org.apache.jmeter.threads.JMeterContextService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.objenesis.Objenesis;
+import org.objenesis.ObjenesisStd;
+
 /**
  * Describe class RMIRemoteObjectConfig here.
  *
@@ -37,6 +40,7 @@ public class RMIRemoteObjectConfig
     implements ThreadListener {
 
     public static final String TARGET_RMI_NAME = "RmiRemoteObjectConfig.target_rmi_name";
+    public static final String OBJENESIS_FACTORY = "RMIRemoteObject.factory";
     public static final String REMOTE_INSTANCES = "RMIRemoteObject.instances";
 
     private static Log log = LogFactory.getLog(RMIRemoteObjectConfig.class);
@@ -67,15 +71,27 @@ public class RMIRemoteObjectConfig
 
     public void threadStarted() {
         log.info("Configuring remote stub registry for thread");
-        RemoteRegistry registry = new RemoteRegistry();
+
         JMeterContext jmctx = JMeterContextService.getContext();
         if(jmctx.getVariables().getObject(REMOTE_INSTANCES) != null) {
             log.fatal("Thread context already has a registry???", new Throwable());
         }
+        RemoteRegistry registry = new RemoteRegistry();
         jmctx.getVariables().putObject(REMOTE_INSTANCES, registry);
+
+        Objenesis objenesis = new ObjenesisStd();
+        if(jmctx.getVariables().getObject(OBJENESIS_FACTORY) != null) {
+            log.fatal("Thread context already has an Objenesis Factory???", new Throwable());
+        }
+        jmctx.getVariables().putObject(OBJENESIS_FACTORY, objenesis);
     }
 
     public void threadFinished() {
+    }
+
+    public Objenesis getFactory() {
+        JMeterContext jmctx = JMeterContextService.getContext();
+        return (Objenesis) jmctx.getVariables().getObject(OBJENESIS_FACTORY);
     }
 
     public Remote getTarget(final String targetName) {
