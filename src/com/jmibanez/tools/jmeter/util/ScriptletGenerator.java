@@ -163,8 +163,9 @@ public class ScriptletGenerator {
         int objCount = 1;
         for(Field f: getFieldsUpTo(beanClass, Object.class)) {
             if (Modifier.isFinal(f.getModifiers())
-                || Modifier.isStatic(f.getModifiers())) {
-                // Ignore static or final fields
+                || Modifier.isStatic(f.getModifiers())
+                || Modifier.isTransient(f.getModifiers())) {
+                // Ignore transient, static, or final fields
                 continue;
             }
 

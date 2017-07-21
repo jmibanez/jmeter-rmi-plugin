@@ -336,6 +336,7 @@ public class ScriptletGeneratorTest extends TestCase {
         SimpleBeanInstance simple = new SimpleBeanInstance();
         simple.setName("Simple\nString with \"quotes\" and a \0 null");
         simple.setAge(42);
+        simple.setMemory(100);
         simple.c = '\n';
 
         simple.setIntern(new NonSerializable());
@@ -353,6 +354,10 @@ public class ScriptletGeneratorTest extends TestCase {
         // Ensure that intern is null;
         assertNotNull(simple.getIntern());
         assertNull(fromScriptlet.getIntern());
+
+        // Ensure memory wasn't set
+        assertEquals(100, simple.getMemory());
+        assertEquals(0, fromScriptlet.getMemory());
     }
 
 
@@ -363,6 +368,7 @@ public class ScriptletGeneratorTest extends TestCase {
         private int age;
 
         private NonSerializable intern;
+        private transient int memory;
 
         public char c;
 
@@ -382,6 +388,14 @@ public class ScriptletGeneratorTest extends TestCase {
         }
         public void setAge(int argAge) {
             this.age = argAge;
+        }
+
+        public int getMemory() {
+            return this.memory;
+        }
+
+        public void setMemory(int memory) {
+            this.memory = memory;
         }
 
         public NonSerializable getIntern() {
