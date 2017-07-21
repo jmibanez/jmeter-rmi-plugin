@@ -18,6 +18,7 @@ public class MethodCallRecord
 
     private static final long serialVersionUID = -30090001L;
 
+    private int index;
     private String target;
     private String method;
     private Class[] argTypes;
@@ -33,12 +34,18 @@ public class MethodCallRecord
     MethodCallRecord() {
     }
 
-    public MethodCallRecord(String target, Method m, Object[] args) {
+    public MethodCallRecord(final int index, final String target, final Method m,
+                            final Object[] args) {
+        this.index = index;
         this.target = target;
         this.argTypes = m.getParameterTypes();
         this.method = constructMethodName(m.getName(), this.argTypes);
         this.args = args;
         this.argsPacked = packArgs(this.args);
+    }
+
+    public int getIndex() {
+        return index;
     }
 
     public String getTarget() {
