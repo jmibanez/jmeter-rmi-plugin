@@ -136,7 +136,8 @@ public class RMISampler
     }
 
 
-    public Object[] getArguments() {
+    public Object[] getArguments()
+        throws EvalError {
         return fromArgumentsScript();
     }
 
@@ -144,7 +145,8 @@ public class RMISampler
         setProperty(new ObjectProperty(ARGUMENTS, arguments));
     }
 
-    private Object[] fromArgumentsScript() {
+    private Object[] fromArgumentsScript()
+        throws EvalError {
         JMeterContext ctx = JMeterContextService.getContext();
         JMeterVariables vars = ctx.getVariables();
         Interpreter argInterpreter = getInterpreter();
@@ -157,9 +159,8 @@ public class RMISampler
         catch(EvalError evalErr) {
             log.error(getName() + ": Error evaluating script: " + evalErr.getMessage() + "; argInterpreter = " + argInterpreter,
                       evalErr);
+            throw evalErr;
         }
-
-        return null;
     }
 
     protected SampleResult sample() {
@@ -172,7 +173,15 @@ public class RMISampler
         String methodName = getMethodName();
 
         log.debug("Getting arguments");
-        Object[] args = getArguments();
+        Object[] args;
+        try {
+            args = getArguments();
+        }
+        catch (EvalError evalErr) {
+            res.sampleEnd();
+            res.setSuccessful(false);
+            return res;
+        }
 
         // Pack and then unpack args, so we can safely measure
         // serialized argument size
