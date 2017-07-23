@@ -220,11 +220,14 @@ public class RMISampler
             res.sampleEnd();
             res.setReturnValue(retval);
         }
-        catch(NoSuchMethodException noMethod) {
-            throw new RuntimeException(noMethod);
-        }
-        catch(IllegalAccessException accessEx) {
-            throw new RuntimeException(accessEx);
+        catch(NoSuchMethodException | IllegalAccessException ex) {
+            res.sampleEnd();
+            res.setReturnValue(ex);
+
+            // Force setting the sampled as failed, as we couldn't
+            // invoke the method
+            res.setSuccessful(false);
+            log.warn(getName() + ": Could not invoke specified method", ex);
         }
         catch(InvocationTargetException invokEx) {
             Throwable actualEx = invokEx.getCause();
