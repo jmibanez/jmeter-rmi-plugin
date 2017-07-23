@@ -86,7 +86,8 @@ public class RMISampler
             argInterpreter.eval(getArgumentsScript());
         }
         catch(EvalError evalErr) {
-            log.warn(getName() + ": Error initially evaluating script: " + evalErr.getMessage());
+            log.warn(getName() + ": Error initially evaluating script: " + evalErr.getMessage(),
+                     evalErr);
         }
     }
 
