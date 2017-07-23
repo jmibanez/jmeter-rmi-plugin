@@ -87,7 +87,8 @@ public class ProxyObjectGraph {
         // If instanceof Remote, replace with proxy
         if (instance instanceof Remote) {
             record.setRemoteReturned(true);
-            String instanceName = buildInstanceName((Remote) instance);
+            String instanceName = buildInstanceName((Remote) instance,
+                                                    record, path);
             DynamicStubProxyInvocationHandler handler =
                 new DynamicStubProxyInvocationHandler(instanceRegistry,
                                                       instance,
