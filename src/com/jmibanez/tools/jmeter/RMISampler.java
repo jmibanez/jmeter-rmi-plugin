@@ -170,7 +170,9 @@ public class RMISampler
 
         RMIRemoteObjectConfig remoteObj = getRemoteObjectConfig();
 
+        String targetName = getTargetName();
         String methodName = getMethodName();
+        res.setSampleLabel(generateSampleLabel(targetName, methodName));
 
         log.debug("Getting arguments");
         Object[] args;
@@ -197,7 +199,6 @@ public class RMISampler
         res.connectEnd();
 
         log.debug("Getting target");
-        String targetName = getTargetName();
         Remote target = remoteObj.getTarget(targetName);
 
         Class<?>[] argTypes = remoteObj.getArgumentTypes(targetName,
@@ -209,7 +210,6 @@ public class RMISampler
             Method m = targetClass.getMethod(actualMethodName, argTypes);
 
             res.setMethod(m);
-            res.setSampleLabel(generateSampleLabel(targetName, methodName));
             res.setArguments(args);
 
             // Assume success
