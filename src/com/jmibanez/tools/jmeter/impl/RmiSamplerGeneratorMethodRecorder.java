@@ -24,8 +24,6 @@ import com.jmibanez.tools.jmeter.util.ScriptletGenerator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import static com.jmibanez.tools.jmeter.util.UniqueNameFactory.generateKeyForMethod;
-
 /**
  * Describe class RmiSamplerGeneratorMethodRecorder here.
  *
@@ -81,12 +79,8 @@ public class RmiSamplerGeneratorMethodRecorder
         }
 
         ScriptletGenerator gen = new ScriptletGenerator();
-        String genKey = generateKeyForMethod(record);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("// $Tag '");
-        sb.append(genKey);
-        sb.append("'\n");
         sb.append("setAccessibility(true);\nmethodArgs ( ) {\n");
 
         String[] argVarnames = new String[args.length];
@@ -155,6 +149,16 @@ public class RmiSamplerGeneratorMethodRecorder
         sampler.setProperty(TestElement.GUI_CLASS, RMISamplerGUI.class.getName());
         sampler.setTargetName(r.getTarget());
         sampler.setMethodName(r.getMethod());
+
+        String instanceName = r.getTarget();
+        if (instanceName == null) {
+            instanceName = "";
+        }
+        sampler.setName(String.format("[%1s] %2d - %3s",
+                                      instanceName,
+                                      r.getIndex(),
+                                      r.getMethod()));
+
         sampler.setArgumentsScript(createArgumentsScript(r));
 
         if(r.isRemoteReturned()) {

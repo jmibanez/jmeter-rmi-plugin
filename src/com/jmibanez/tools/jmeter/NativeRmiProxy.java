@@ -27,13 +27,11 @@ import java.rmi.registry.Registry;
 import java.util.HashMap;
 import java.util.Map;
 
-//import org.apache.log4j.Logger;
-import org.apache.log.Logger;
-
 import com.jmibanez.tools.jmeter.impl.SimpleLoggingMethodRecorder;
 import com.jmibanez.tools.jmeter.impl.NullMethodRecorder;
 import java.rmi.server.UnicastRemoteObject;
-import org.apache.jorphan.logging.LoggingManager;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jmeter.util.BeanShellInterpreter;
 import org.apache.jorphan.util.JMeterException;
@@ -65,7 +63,7 @@ public class NativeRmiProxy
     private int serverPort;
 
     private volatile boolean stillRunning;
-    private static Logger log = LoggingManager.getLoggerForClass(); // Logger.getLogger(NativeRmiProxy.class);
+    private static Log log = LogFactory.getLog(NativeRmiProxy.class);
 
     private MethodRecorder recorder;
 

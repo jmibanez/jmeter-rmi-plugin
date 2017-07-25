@@ -7,11 +7,14 @@
  
 package com.jmibanez.tools.jmeter.util;
 
-import junit.framework.TestCase;
-import bsh.Interpreter;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
+
+import junit.framework.TestCase;
+import bsh.Interpreter;
+
 
 /**
  * Describe class ScriptletGeneratorTest here.
@@ -43,7 +46,7 @@ public class ScriptletGeneratorTest extends TestCase {
     }
 
 
-    public void testSimpleGenerateScriptletForObject() 
+    public void testSimpleGenerateScriptletForObject()
         throws Exception {
 
         SimpleBeanInstance simple = new SimpleBeanInstance();
@@ -59,6 +62,33 @@ public class ScriptletGeneratorTest extends TestCase {
 
         SimpleBeanInstance fromScriptlet = (SimpleBeanInstance) bshInterpreter.get("simple");
         assertEquals(simple, fromScriptlet);
+
+    }
+
+    public void testGenerateScriptletForClassWithoutDefaultConstructor()
+        throws Exception {
+
+        SimpleBeanInstance simple = new SimpleBeanInstance();
+        simple.setName("Simple\nString with \"quotes\" and a \0 null");
+        simple.setAge(42);
+        simple.c = '\n';
+
+        SerializableBeanWithoutDefaultConstructor bean
+            = new SerializableBeanWithoutDefaultConstructor(simple);
+
+        String scriptlet = inst.generateScriptletForObject(bean, "noCons");
+
+        assertNotNull(scriptlet);
+
+        bshInterpreter.eval(scriptlet);
+
+        SerializableBeanWithoutDefaultConstructor fromScriptlet
+            = (SerializableBeanWithoutDefaultConstructor) bshInterpreter.get("noCons");
+        assertNotNull(fromScriptlet);
+
+        SimpleBeanInstance simpleFromScriptlet = fromScriptlet.getOther();
+        assertNotNull(simpleFromScriptlet);
+        assertEquals(simple, simpleFromScriptlet);
 
     }
 
@@ -327,12 +357,45 @@ public class ScriptletGeneratorTest extends TestCase {
                      inst.getVariableNameForType(new int[0]));
     }
 
+    public void testSkipNonSerializableValues()
+        throws Exception {
+
+        SimpleBeanInstance simple = new SimpleBeanInstance();
+        simple.setName("Simple\nString with \"quotes\" and a \0 null");
+        simple.setAge(42);
+        simple.setMemory(100);
+        simple.c = '\n';
+
+        simple.setIntern(new NonSerializable());
+
+        String scriptlet = inst.generateScriptletForObject(simple, "simple");
+
+        assertNotNull(scriptlet);
+        System.out.println(scriptlet);
+
+        bshInterpreter.eval(scriptlet);
+
+        SimpleBeanInstance fromScriptlet = (SimpleBeanInstance) bshInterpreter.get("simple");
+        assertEquals(simple, fromScriptlet);
+
+        // Ensure that intern is null;
+        assertNotNull(simple.getIntern());
+        assertNull(fromScriptlet.getIntern());
+
+        // Ensure memory wasn't set
+        assertEquals(100, simple.getMemory());
+        assertEquals(0, fromScriptlet.getMemory());
+    }
+
 
     public static class SimpleBeanInstance
-    {
+        implements Serializable {
 
         private String name;
         private int age;
+
+        private NonSerializable intern;
+        private transient int memory;
 
         public char c;
 
@@ -354,6 +417,22 @@ public class ScriptletGeneratorTest extends TestCase {
             this.age = argAge;
         }
 
+        public int getMemory() {
+            return this.memory;
+        }
+
+        public void setMemory(int memory) {
+            this.memory = memory;
+        }
+
+        public NonSerializable getIntern() {
+            return this.intern;
+        }
+
+        public void setIntern(NonSerializable intern) {
+            this.intern = intern;
+        }
+
         @Override
         public boolean equals(Object other) {
             if(!(other instanceof SimpleBeanInstance)) {
@@ -369,8 +448,26 @@ public class ScriptletGeneratorTest extends TestCase {
     }
 
 
+    public static class SerializableBeanWithoutDefaultConstructor
+        implements Serializable {
+
+        private SimpleBeanInstance other;
+
+        public SerializableBeanWithoutDefaultConstructor(SimpleBeanInstance other) {
+            this.other = other;
+        }
+
+        public final SimpleBeanInstance getOther() {
+            return this.other;
+        }
+        public final void setOther(final SimpleBeanInstance argOther) {
+            this.other = argOther;
+        }
+    }
+
+
     public static class ComplexBeanInstance
-    {
+        implements Serializable {
         private List personList;
         private Map someMap;
 
@@ -416,7 +513,7 @@ public class ScriptletGeneratorTest extends TestCase {
     }
 
     public static class CyclicClass
-    {
+        implements Serializable {
         public List<CyclicClassChild> children = new ArrayList<CyclicClassChild>();
 
         @Override
@@ -431,7 +528,7 @@ public class ScriptletGeneratorTest extends TestCase {
     }
 
     public static class CyclicClassChild
-    {
+        implements Serializable {
         public CyclicClass parent;
         public String name;
 
@@ -442,6 +539,18 @@ public class ScriptletGeneratorTest extends TestCase {
 
             CyclicClassChild otherCyclicClassChild = (CyclicClassChild) other;
             return (name == null && otherCyclicClassChild.name == null) || name.equals(otherCyclicClassChild.name);
+        }
+    }
+
+    public static class NonSerializable {
+        private int key = 69;
+
+        public int getKey() {
+            return key;
+        }
+
+        public void setKey(final int key) {
+            this.key = key;
         }
     }
 }

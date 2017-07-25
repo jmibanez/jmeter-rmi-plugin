@@ -21,7 +21,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import static com.jmibanez.tools.jmeter.util.UniqueNameFactory.buildInstanceName;
+import static com.jmibanez.tools.jmeter.util.InstanceHandleFactory.buildInstanceName;
 import static com.jmibanez.tools.jmeter.util.ReflectionUtil.getFieldsUpTo;
 
 
@@ -87,7 +87,8 @@ public class ProxyObjectGraph {
         // If instanceof Remote, replace with proxy
         if (instance instanceof Remote) {
             record.setRemoteReturned(true);
-            String instanceName = buildInstanceName((Remote) instance);
+            String instanceName = buildInstanceName((Remote) instance,
+                                                    record, path);
             DynamicStubProxyInvocationHandler handler =
                 new DynamicStubProxyInvocationHandler(instanceRegistry,
                                                       instance,

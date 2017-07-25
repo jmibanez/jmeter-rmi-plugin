@@ -84,7 +84,7 @@ public class RMISampler
             argInterpreter.eval(getArgumentsScript());
         }
         catch(EvalError evalErr) {
-            log.warn("Error initially evaluating script: " + evalErr.getMessage());
+            log.warn(getName() + ": Error initially evaluating script: " + evalErr.getMessage());
         }
     }
 
@@ -110,7 +110,6 @@ public class RMISampler
 
     public void setMethodName(String value) {
         setProperty(METHOD_NAME, value);
-        setName(value);
     }
 
     public String getMethodName() {
@@ -158,7 +157,7 @@ public class RMISampler
             return (Object[]) argInterpreter.eval("methodArgs();");
         }
         catch(EvalError evalErr) {
-            log.error(getMethodName() + ": Error evaluating script: " + evalErr.getMessage() + "; argInterpreter = " + argInterpreter,
+            log.error(getName() + ": Error evaluating script: " + evalErr.getMessage() + "; argInterpreter = " + argInterpreter,
                       evalErr);
         }
 
@@ -185,7 +184,7 @@ public class RMISampler
             res.setSentBytes(argsPacked.length);
         }
         catch (Exception packErr) {
-            log.warn(getMethodName() + ": Couldn't pack/unpack arguments to measure sent size: " + packErr.getMessage(),
+            log.warn(getName() + ": Couldn't pack/unpack arguments to measure sent size: " + packErr.getMessage(),
                      packErr);
         }
         res.connectEnd();
@@ -203,7 +202,7 @@ public class RMISampler
             Method m = targetClass.getMethod(actualMethodName, argTypes);
 
             res.setMethod(m);
-            res.setSampleLabel(methodName);
+            res.setSampleLabel(generateSampleLabel(targetName, methodName));
             res.setArguments(args);
 
             // Assume success
@@ -260,7 +259,17 @@ public class RMISampler
         return interpreter.get();
     }
 
+    private String generateSampleLabel(final String targetName,
+                                       final String methodName) {
+        String instanceName = targetName;
+        if (instanceName == null) {
+            instanceName = "(root)";
+        }
+
+        return String.format("%1s : %2s", instanceName, methodName);
+    }
+
     public String toString() {
-        return super.toString() +  ": " +  getMethodName();
+        return super.toString() +  ": " +  getName();
     }
 }

@@ -2,7 +2,6 @@ package com.jmibanez.tools.jmeter;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
-import org.apache.log.Logger;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -28,6 +27,8 @@ public class DynamicStubProxyInvocationHandler
                Serializable
 {
     private static final long serialVersionUID = -30090000L;
+
+    private int callIndex = 1;
 
     private InstanceRegistry instanceRegistry;
     private String instanceName;
@@ -109,7 +110,8 @@ public class DynamicStubProxyInvocationHandler
                                     MethodProxy methodProxy)
         throws Throwable {
         log.debug("Calling method " + m.getName());
-        MethodCallRecord r = new MethodCallRecord(instanceName, m, args);
+        MethodCallRecord r = new MethodCallRecord(callIndex++, instanceName, m,
+                                                  args);
         log.debug("Record created");
 
         // Classes might suddenly change state under us when we pack

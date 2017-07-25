@@ -9,14 +9,16 @@ package com.jmibanez.tools.jmeter.util;
 
 import java.beans.BeanInfo;
 import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Field;
 import java.beans.Introspector;
 import java.beans.IntrospectionException;
-import java.util.Collection;
-import java.lang.reflect.Modifier;
+import java.io.Serializable;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -162,14 +164,23 @@ public class ScriptletGenerator {
         int objCount = 1;
         for(Field f: getFieldsUpTo(beanClass, Object.class)) {
             if (Modifier.isFinal(f.getModifiers())
-                || Modifier.isStatic(f.getModifiers())) {
-                // Ignore static or final fields
+                || Modifier.isStatic(f.getModifiers())
+                || Modifier.isTransient(f.getModifiers())) {
+                // Ignore transient, static, or final fields
+                continue;
+            }
+
+            Class<?> valType = f.getType();
+
+            if (Object.class.isAssignableFrom(valType)
+                && !Collection.class.isAssignableFrom(valType)
+                && !Serializable.class.isAssignableFrom(valType)) {
+                // Skip non-Serializable values
                 continue;
             }
 
             f.setAccessible(true);
 
-            Class valType = f.getType();
             Object val = null;
             try {
                 val = f.get(bean);
@@ -204,6 +215,23 @@ public class ScriptletGenerator {
         }
 
         return new String[] { decl.toString(), scriptlet.toString() };
+    }
+
+
+    private void appendConstructorCallForClass(Class<?> beanType,
+                                               StringBuilder scriptlet) {
+        try {
+            beanType.getConstructor(new Class<?>[] { });
+            scriptlet.append("new ");
+            scriptlet.append(beanType.getCanonicalName());
+            scriptlet.append("();\n");
+        } catch (NoSuchMethodException ex) {
+            scriptlet.append("com.jmibanez.tools.jmeter.util.ReflectionUtil.newInstance(");
+            scriptlet.append(beanType.getCanonicalName());
+            scriptlet.append(".class); // WARNING: ");
+            scriptlet.append(beanType.getCanonicalName());
+            scriptlet.append(" has no default constructor, using Objenesis glue to build instance\n");
+        }
     }
 
     /**
@@ -283,9 +311,8 @@ public class ScriptletGenerator {
         scriptlet.append(typeSignature);
         scriptlet.append(" ");
         scriptlet.append(varname);
-        scriptlet.append(" = new ");
-        scriptlet.append(beanType.getCanonicalName());
-        scriptlet.append("();\n");
+        scriptlet.append(" = ");
+        appendConstructorCallForClass(beanType, scriptlet);
 
         String[] scr = scriptletFromFields(bean, varname);
         decl.append("\n");
