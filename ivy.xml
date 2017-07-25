@@ -65,6 +65,11 @@
         rev="3.2.5"
         conf="production" />
     <dependency
+        org="org.objenesis"
+        name="objenesis"
+        rev="2.6"
+        conf="production" />
+    <dependency
         org="junit"
         name="junit"
         rev="4.11"

@@ -65,6 +65,33 @@ public class ScriptletGeneratorTest extends TestCase {
 
     }
 
+    public void testGenerateScriptletForClassWithoutDefaultConstructor()
+        throws Exception {
+
+        SimpleBeanInstance simple = new SimpleBeanInstance();
+        simple.setName("Simple\nString with \"quotes\" and a \0 null");
+        simple.setAge(42);
+        simple.c = '\n';
+
+        SerializableBeanWithoutDefaultConstructor bean
+            = new SerializableBeanWithoutDefaultConstructor(simple);
+
+        String scriptlet = inst.generateScriptletForObject(bean, "noCons");
+
+        assertNotNull(scriptlet);
+
+        bshInterpreter.eval(scriptlet);
+
+        SerializableBeanWithoutDefaultConstructor fromScriptlet
+            = (SerializableBeanWithoutDefaultConstructor) bshInterpreter.get("noCons");
+        assertNotNull(fromScriptlet);
+
+        SimpleBeanInstance simpleFromScriptlet = fromScriptlet.getOther();
+        assertNotNull(simpleFromScriptlet);
+        assertEquals(simple, simpleFromScriptlet);
+
+    }
+
     public void testNestedGenerateScriptletForObject()
         throws Exception {
         SimpleBeanInstance simple = new SimpleBeanInstance();
@@ -417,6 +444,24 @@ public class ScriptletGeneratorTest extends TestCase {
             return name.equals(otherBean.name)
                 && age == otherBean.age
                 && c == otherBean.c;
+        }
+    }
+
+
+    public static class SerializableBeanWithoutDefaultConstructor
+        implements Serializable {
+
+        private SimpleBeanInstance other;
+
+        public SerializableBeanWithoutDefaultConstructor(SimpleBeanInstance other) {
+            this.other = other;
+        }
+
+        public final SimpleBeanInstance getOther() {
+            return this.other;
+        }
+        public final void setOther(final SimpleBeanInstance argOther) {
+            this.other = argOther;
         }
     }
 
