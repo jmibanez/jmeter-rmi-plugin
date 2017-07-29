@@ -7,17 +7,18 @@
  
 package com.jmibanez.tools.jmeter;
 
-import org.apache.jmeter.config.ConfigTestElement;
-import java.util.Map;
+import java.lang.reflect.Method;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.rmi.server.RemoteObject;
 import java.rmi.Naming;
 import java.util.HashMap;
-import java.rmi.Remote;
-import java.rmi.RemoteException;
+import java.util.Map;
+import org.apache.jmeter.config.ConfigTestElement;
 import org.apache.jmeter.testelement.ThreadListener;
+import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.testelement.property.StringProperty;
-import com.jmibanez.tools.jmeter.gui.RMIRemoteObjectConfigGUI;
-import java.lang.reflect.Method;
+import org.apache.jmeter.testelement.property.TestElementProperty;
 import org.apache.jmeter.threads.JMeterContext;
 import org.apache.jmeter.threads.JMeterContextService;
 import org.apache.commons.logging.Log;
@@ -25,6 +26,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
+
+import com.jmibanez.tools.jmeter.gui.RMIRemoteObjectConfigGUI;
+import com.jmibanez.tools.jmeter.impl.SwitchingRemoteRegistry;
 
 /**
  * Describe class RMIRemoteObjectConfig here.
@@ -40,10 +44,12 @@ public class RMIRemoteObjectConfig
     implements ThreadListener {
 
     public static final String TARGET_RMI_NAME = "RmiRemoteObjectConfig.target_rmi_name";
-    public static final String OBJENESIS_FACTORY = "RMIRemoteObject.factory";
     public static final String REMOTE_INSTANCES = "RMIRemoteObject.instances";
 
     private static Log log = LogFactory.getLog(RMIRemoteObjectConfig.class);
+
+    private RemoteRegistry registry = null;
+    private Objenesis factory = null;
 
     /**
      * Creates a new <code>RMIRemoteObjectConfig</code> instance.
@@ -72,26 +78,23 @@ public class RMIRemoteObjectConfig
     public void threadStarted() {
         log.info("Configuring remote stub registry for thread");
 
-        JMeterContext jmctx = JMeterContextService.getContext();
-        if(jmctx.getVariables().getObject(REMOTE_INSTANCES) != null) {
-            log.fatal("Thread context already has a registry???", new Throwable());
-        }
-        RemoteRegistry registry = new RemoteRegistry();
-        jmctx.getVariables().putObject(REMOTE_INSTANCES, registry);
+        this.registry = new RemoteRegistry();
+        this.factory = new ObjenesisStd();
 
-        Objenesis objenesis = new ObjenesisStd();
-        if(jmctx.getVariables().getObject(OBJENESIS_FACTORY) != null) {
-            log.fatal("Thread context already has an Objenesis Factory???", new Throwable());
+        JMeterContext jmctx = JMeterContextService.getContext();
+        if(jmctx.getVariables().getObject(REMOTE_INSTANCES) == null) {
+            InstanceRegistry switchRegistry = new SwitchingRemoteRegistry();
+            jmctx.getVariables().putObject(REMOTE_INSTANCES, switchRegistry);
         }
-        jmctx.getVariables().putObject(OBJENESIS_FACTORY, objenesis);
     }
 
     public void threadFinished() {
+        registry = null;
+        factory = null;
     }
 
     public Objenesis getFactory() {
-        JMeterContext jmctx = JMeterContextService.getContext();
-        return (Objenesis) jmctx.getVariables().getObject(OBJENESIS_FACTORY);
+        return this.factory;
     }
 
     public Remote getTarget(final String targetName) {
@@ -122,10 +125,8 @@ public class RMIRemoteObjectConfig
         setProperty(new StringProperty(TARGET_RMI_NAME, value));
     }
 
-    private RemoteRegistry getRegistry() {
-        JMeterContext jmctx = JMeterContextService.getContext();
-        RemoteRegistry registry = (RemoteRegistry) jmctx.getVariables().getObject(REMOTE_INSTANCES);
-        return registry;
+    public RemoteRegistry getRegistry() {
+        return this.registry;
     }
 
     public static class RemoteRegistry
