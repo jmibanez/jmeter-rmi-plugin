@@ -133,11 +133,6 @@ public class RMISampler
     }
 
 
-    public Class getGuiClass() {
-        return RMISamplerGUI.class;
-    }
-
-
     public Object[] getArguments() {
         return fromArgumentsScript();
     }
