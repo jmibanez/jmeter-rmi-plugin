@@ -12,7 +12,9 @@ import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
 import org.objenesis.instantiator.ObjectInstantiator;
 
-import static com.jmibanez.tools.jmeter.RMIRemoteObjectConfig.OBJENESIS_FACTORY;
+import com.jmibanez.tools.jmeter.RMIRemoteObjectConfig;
+import static com.jmibanez.tools.jmeter.RMISampler.REMOTE_OBJECT_CONFIG;
+
 
 public class ReflectionUtil {
 
@@ -35,9 +37,14 @@ public class ReflectionUtil {
 
     public static <T> T newInstance(Class<T> clazz) {
         JMeterContext jmctx = JMeterContextService.getContext();
+
         Objenesis objenesis = null;
-        if (jmctx.getVariables() != null) {
-            objenesis = (Objenesis) jmctx.getVariables().getObject(OBJENESIS_FACTORY);
+
+        if (jmctx.getCurrentSampler() != null) {
+            RMIRemoteObjectConfig remoteObj = (RMIRemoteObjectConfig) jmctx.getCurrentSampler()
+                .getProperty(REMOTE_OBJECT_CONFIG)
+                .getObjectValue();
+            objenesis = remoteObj.getFactory();
         }
         else {
             objenesis = new ObjenesisStd();

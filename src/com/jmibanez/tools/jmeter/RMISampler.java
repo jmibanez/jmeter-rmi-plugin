@@ -247,8 +247,9 @@ public class RMISampler
 
     private void setRemoteObjectConfig(RMIRemoteObjectConfig value) {
         RMIRemoteObjectConfig remoteObj = getRemoteObjectConfig();
-        if (remoteObj != null) {
-            log.warn("Existing remote object config " + remoteObj.getName() + " superseded by " + value.getName());
+        if (remoteObj != null && remoteObj != value) {
+            log.warn(getName() + "Ignoring " + value.getName() + ", existing remote object " + remoteObj.getName(), new Exception());
+            return;
         }
         JMeterProperty remoteObjProp = new TestElementProperty(REMOTE_OBJECT_CONFIG, value);
         setProperty(remoteObjProp);
