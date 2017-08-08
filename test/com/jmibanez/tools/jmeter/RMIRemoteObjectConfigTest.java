@@ -3,14 +3,16 @@ package com.jmibanez.tools.jmeter;
 import java.rmi.Remote;
 import junit.framework.TestCase;
 
+import com.jmibanez.tools.jmeter.impl.RemoteRegistry;
+
 public class RMIRemoteObjectConfigTest extends TestCase {
 
-    private RMIRemoteObjectConfig.RemoteRegistry inst;
+    private RemoteRegistry inst;
 
     @Override
     public void setUp()
         throws Exception {
-        inst = new RMIRemoteObjectConfig.RemoteRegistry();
+        inst = new RemoteRegistry();
     }
 
 
