@@ -437,6 +437,11 @@ public class ScriptletGeneratorTest extends TestCase {
         }
 
         @Override
+        public int hashCode() {
+            return name.hashCode() << 16 | (age << 8) | (c << 4);
+        }
+
+        @Override
         public boolean equals(Object other) {
             if(!(other instanceof SimpleBeanInstance)) {
                 return false;
@@ -507,6 +512,16 @@ public class ScriptletGeneratorTest extends TestCase {
         }
 
         @Override
+        public int hashCode() {
+            int personListHash = (personList != null) ? personList.hashCode() : 0;
+            int someMapHash = (someMap != null) ? someMap.hashCode() : 0;
+            int otherHash = (other != null) ? other.hashCode() : 0;
+
+            return (personListHash << 24) | (someMapHash << 16)
+                | (otherHash << 8);
+        }
+
+        @Override
         public boolean equals(Object other) {
             if(!(other instanceof ComplexBeanInstance)) {
                 return false;
@@ -528,6 +543,11 @@ public class ScriptletGeneratorTest extends TestCase {
         public List<CyclicClassChild> children = new ArrayList<CyclicClassChild>();
 
         @Override
+        public int hashCode() {
+            return children.hashCode();
+        }
+
+        @Override
         public boolean equals(Object other) {
             if(!(other instanceof CyclicClass)) {
                 return false;
@@ -546,6 +566,12 @@ public class ScriptletGeneratorTest extends TestCase {
         public CyclicClass parent;
         public String name;
 
+        @Override
+        public int hashCode() {
+            return name.hashCode();
+        }
+
+        @Override
         public boolean equals(Object other) {
             if(!(other instanceof CyclicClassChild)) {
                 return false;

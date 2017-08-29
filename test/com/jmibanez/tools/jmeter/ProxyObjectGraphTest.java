@@ -211,6 +211,12 @@ public class ProxyObjectGraphTest extends TestCase {
             this.age = argAge;
         }
 
+
+        @Override
+        public int hashCode() {
+            return name.hashCode() << 16 | (age << 8) | (c << 4);
+        }
+
         @Override
         public boolean equals(Object other) {
             if(!(other instanceof SimpleBeanInstance)) {
@@ -287,6 +293,17 @@ public class ProxyObjectGraphTest extends TestCase {
         }
 
         @Override
+        public int hashCode() {
+            int personListHash = (personList != null) ? personList.hashCode() : 0;
+            int someMapHash = (someMap != null) ? someMap.hashCode() : 0;
+            int otherHash = (other != null) ? other.hashCode() : 0;
+            int otherCallHash = (otherCall != null) ? otherCall.hashCode() : 0;
+
+            return (personListHash << 24) | (someMapHash << 16)
+                | (otherHash << 8) | otherCallHash;
+        }
+
+        @Override
         public boolean equals(Object other) {
             if(!(other instanceof ComplexBeanInstance)) {
                 return false;
@@ -313,6 +330,12 @@ public class ProxyObjectGraphTest extends TestCase {
 
         public final TestRemote getOtherCall() {
             return this.otherCall;
+        }
+
+        @Override
+        public int hashCode() {
+            int otherCallHash = (otherCall != null) ? otherCall.hashCode() : 0;
+            return (children.hashCode() << 16)  | otherCallHash;
         }
 
         @Override
@@ -343,6 +366,12 @@ public class ProxyObjectGraphTest extends TestCase {
             return this.otherCall;
         }
 
+        @Override
+        public int hashCode() {
+            return name.hashCode();
+        }
+
+        @Override
         public boolean equals(Object other) {
             if(!(other instanceof CyclicClassChild)) {
                 return false;
