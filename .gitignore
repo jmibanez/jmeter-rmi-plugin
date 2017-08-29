@@ -2,3 +2,5 @@ build
 lib
 *.class
 *~
+/nbproject/private/
+/dist/
