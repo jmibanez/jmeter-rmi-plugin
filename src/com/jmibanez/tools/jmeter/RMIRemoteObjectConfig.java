@@ -49,8 +49,8 @@ public class RMIRemoteObjectConfig
 
     private static Log log = LogFactory.getLog(RMIRemoteObjectConfig.class);
 
-    private RemoteRegistry registry = null;
-    private Objenesis factory = null;
+    private ThreadLocal<RemoteRegistry> registry = new ThreadLocal<>();
+    private ThreadLocal<Objenesis> factory = new ThreadLocal<>();
 
     /**
      * Creates a new <code>RMIRemoteObjectConfig</code> instance.
@@ -79,8 +79,8 @@ public class RMIRemoteObjectConfig
     public void threadStarted() {
         log.info("Configuring remote stub registry for thread");
 
-        this.registry = new RemoteRegistry();
-        this.factory = new ObjenesisStd();
+        this.registry.set(new RemoteRegistry());
+        this.factory.set(new ObjenesisStd());
 
         JMeterContext jmctx = JMeterContextService.getContext();
         if(jmctx.getVariables().getObject(REMOTE_INSTANCES) == null) {
@@ -90,12 +90,12 @@ public class RMIRemoteObjectConfig
     }
 
     public void threadFinished() {
-        registry = null;
-        factory = null;
+        registry.remove();
+        factory.remove();
     }
 
     public Objenesis getFactory() {
-        return this.factory;
+        return this.factory.get();
     }
 
     public Remote getTarget(final String targetName) {
@@ -127,6 +127,6 @@ public class RMIRemoteObjectConfig
     }
 
     public RemoteRegistry getRegistry() {
-        return this.registry;
+        return this.registry.get();
     }
 }
