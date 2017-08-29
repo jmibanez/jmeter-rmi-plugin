@@ -68,10 +68,11 @@ public class RmiSamplerGeneratorMethodRecorder
         this.target = argTarget;
     }
 
+    @SuppressWarnings("unchecked")
     private String createArgumentsScript(MethodCallRecord record) {
         log.info("Creating script for method call record");
 
-        Class[] argTypes = record.getArgumentTypes();
+        Class<?>[] argTypes = record.getArgumentTypes();
         Object[] args = record.getArguments();
 
         if(argTypes == null || argTypes.length == 0) {

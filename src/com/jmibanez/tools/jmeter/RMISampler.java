@@ -188,8 +188,8 @@ public class RMISampler
         String targetName = getTargetName();
         Remote target = remoteObj.getTarget(targetName);
 
-        Class[] argTypes = remoteObj.getArgumentTypes(targetName,
-                                                      methodName);
+        Class<?>[] argTypes = remoteObj.getArgumentTypes(targetName,
+                                                         methodName);
 
         try {
             Class<?> targetClass = target.getClass();

@@ -99,7 +99,7 @@ public class ScriptletGeneratorTest extends TestCase {
         simple.setAge(42);
         simple.c = '\n';
 
-        List l = new ArrayList();
+        List<SimpleBeanInstance> l = new ArrayList<>();
         l.add(simple);
 
         SimpleBeanInstance simple2 = new SimpleBeanInstance();
@@ -208,6 +208,7 @@ public class ScriptletGeneratorTest extends TestCase {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     public void testGenerateScriptletForList()
         throws Exception {
         SimpleBeanInstance a = new SimpleBeanInstance();
@@ -468,8 +469,8 @@ public class ScriptletGeneratorTest extends TestCase {
 
     public static class ComplexBeanInstance
         implements Serializable {
-        private List personList;
-        private Map someMap;
+        private List<SimpleBeanInstance> personList;
+        private Map<String, Object> someMap;
 
         private SimpleBeanInstance other;
 
@@ -477,10 +478,10 @@ public class ScriptletGeneratorTest extends TestCase {
         }
 
 
-        public final List getPersonList() {
+        public final List<SimpleBeanInstance> getPersonList() {
             return this.personList;
         }
-        public final void setPersonList(final List argPersonList) {
+        public final void setPersonList(final List<SimpleBeanInstance> argPersonList) {
             this.personList = argPersonList;
         }
 
@@ -491,10 +492,10 @@ public class ScriptletGeneratorTest extends TestCase {
             this.other = argOther;
         }
 
-        public final Map getSomeMap() {
+        public final Map<String, Object> getSomeMap() {
             return this.someMap;
         }
-        public final void setSomeMap(final Map argSomeMap) {
+        public final void setSomeMap(final Map<String, Object> argSomeMap) {
             this.someMap = argSomeMap;
         }
 

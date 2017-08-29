@@ -55,19 +55,19 @@ public class DynamicStubProxyInvocationHandler
                InstantiationException,
                InvocationTargetException,
                NoSuchMethodException {
-        Class stub = stubInstance.getClass();
+        Class<?> stub = stubInstance.getClass();
         if(stub == null) {
             throw new RuntimeException("Couldn't find stub class");
         }
 
         log.debug("Stub class: " + stub.getName());
-        Class[] stubInterfaces = stub.getInterfaces();
+        Class<?>[] stubInterfaces = stub.getInterfaces();
 
         if (isRoot) {
             Class<?> stubProxyClass = Proxy.getProxyClass(getClass().getClassLoader(),
                                                           stubInterfaces);
             Constructor<?> spCons =
-                stubProxyClass.getConstructor(new Class[] { InvocationHandler.class });
+                stubProxyClass.getConstructor(new Class<?>[] { InvocationHandler.class });
             return (Remote) spCons.newInstance(new Object[] { this });
         }
         else {

@@ -64,15 +64,15 @@ public class RMIRemoteObjectConfig
         return true;
     }
 
-    public Class getGuiClass() {
+    public Class<?> getGuiClass() {
         return com.jmibanez.tools.jmeter.gui.RMIRemoteObjectConfigGUI.class;
     }
 
-    public Class[] getArgumentTypes(final String targetName, final String methodName) {
+    public Class<?>[] getArgumentTypes(final String targetName, final String methodName) {
         return getRegistry().getArgumentTypes(targetName, methodName);
     }
 
-    public void setArgumentTypes(String targetName, String methodName, Class[] argTypes) {
+    public void setArgumentTypes(String targetName, String methodName, Class<?>[] argTypes) {
         getRegistry().setArgumentTypes(targetName, methodName, argTypes);
     }
 
@@ -104,7 +104,7 @@ public class RMIRemoteObjectConfig
         Remote target = getRegistry().getTarget(targetName);
         if(target == null && targetName == null) {
             try {
-                target = (Remote) Naming.lookup(getTargetRmiName());
+                target = Naming.lookup(getTargetRmiName());
                 getRegistry().registerRootRmiInstance(target);
             }
             catch(Exception ignored) {

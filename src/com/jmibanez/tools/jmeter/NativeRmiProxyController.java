@@ -130,16 +130,12 @@ public class NativeRmiProxyController extends GenericController {
         this.target = target;
     }
 
-    public Class getGuiClass() {
-        return com.jmibanez.tools.jmeter.gui.NativeRmiProxyControllerGui.class;
-    }
-
-    private JMeterTreeNode findFirstNodeOfType(Class type) {
+    private JMeterTreeNode findFirstNodeOfType(Class<?> type) {
         JMeterTreeModel treeModel = GuiPackage.getInstance().getTreeModel();
-        List nodes = treeModel.getNodesOfType(type);
-        Iterator iter = nodes.iterator();
+        List<JMeterTreeNode> nodes = treeModel.getNodesOfType(type);
+        Iterator<JMeterTreeNode> iter = nodes.iterator();
         while (iter.hasNext()) {
-            JMeterTreeNode node = (JMeterTreeNode) iter.next();
+            JMeterTreeNode node = iter.next();
             if (node.isEnabled()) {
                 return node;
             }

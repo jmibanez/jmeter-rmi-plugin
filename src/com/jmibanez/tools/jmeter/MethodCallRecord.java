@@ -21,7 +21,7 @@ public class MethodCallRecord
     private int index;
     private String target;
     private String method;
-    private Class[] argTypes;
+    private Class<?>[] argTypes;
     private Object[] args;
     private byte[] argsPacked;
     private Object returnValue;
@@ -65,7 +65,7 @@ public class MethodCallRecord
         return args;
     }
 
-    public Class[] getArgumentTypes() {
+    public Class<?>[] getArgumentTypes() {
         return argTypes;
     }
 
@@ -111,7 +111,7 @@ public class MethodCallRecord
         return remotePathsInReturn;
     }
 
-    public static String constructMethodName(String methodName, Class[] argTypes) {
+    public static String constructMethodName(String methodName, Class<?>[] argTypes) {
         StringBuilder sb = new StringBuilder();
         sb.append(methodName);
 
@@ -121,7 +121,7 @@ public class MethodCallRecord
         }
 
         sb.append(":");
-        for(Class c : argTypes) {
+        for(Class<?> c : argTypes) {
             sb.append(c.getName());
             sb.append(",");
         }

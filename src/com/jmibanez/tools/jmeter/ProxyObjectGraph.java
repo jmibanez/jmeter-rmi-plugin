@@ -61,7 +61,7 @@ public class ProxyObjectGraph {
             return null;
         }
 
-        Class clazz = instance.getClass();
+        Class<?> clazz = instance.getClass();
 
         // Handle types
         // Primitives: Passthrough
@@ -77,7 +77,7 @@ public class ProxyObjectGraph {
             return instance;
         }
 
-        if (instance instanceof Class) {
+        if (instance instanceof Class<?>) {
             // Skip classes
             return instance;
         }
@@ -122,7 +122,7 @@ public class ProxyObjectGraph {
                 continue;
             }
 
-            Class valType = f.getType();
+            Class<?> valType = f.getType();
             Object val = null;
             if (!f.isAccessible()) {
                 f.setAccessible(true);
@@ -140,6 +140,7 @@ public class ProxyObjectGraph {
         return instance;
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private Object traverseArrayAndReplaceRemotes(Object arrayInstance,
                                                   MethodCallRecord record,
                                                   String path)
@@ -153,6 +154,7 @@ public class ProxyObjectGraph {
         return arrayInstance;
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private Object traverseMapKeyValuePairs(Map m, MethodCallRecord record,
                                             String path)
         throws Exception {
@@ -164,6 +166,7 @@ public class ProxyObjectGraph {
         return m;
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private Object traverseCollectionAndReplaceRemotes(Collection c,
                                                        MethodCallRecord record,
                                                        String path)

@@ -246,8 +246,8 @@ public class ProxyObjectGraphTest extends TestCase {
     }
 
     public static class ComplexBeanInstance {
-        private List personList;
-        private Map someMap;
+        private List<Object> personList;
+        private Map<String, Object> someMap;
 
         private SimpleBeanInstance other;
         private TestRemote otherCall;
@@ -259,10 +259,10 @@ public class ProxyObjectGraphTest extends TestCase {
             this.otherCall = otherCall;
         }
 
-        public final List getPersonList() {
+        public final List<Object> getPersonList() {
             return this.personList;
         }
-        public final void setPersonList(final List argPersonList) {
+        public final void setPersonList(final List<Object> argPersonList) {
             this.personList = argPersonList;
         }
 
@@ -273,10 +273,10 @@ public class ProxyObjectGraphTest extends TestCase {
             this.other = argOther;
         }
 
-        public final Map getSomeMap() {
+        public final Map<String, Object> getSomeMap() {
             return this.someMap;
         }
-        public final void setSomeMap(final Map argSomeMap) {
+        public final void setSomeMap(final Map<String, Object> argSomeMap) {
             this.someMap = argSomeMap;
         }
 

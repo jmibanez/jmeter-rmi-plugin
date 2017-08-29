@@ -43,13 +43,14 @@ public class ScriptletGenerator {
 
     private static Log log = LogFactory.getLog(ScriptletGenerator.class);
 
-    private Map<Object,String> generatedObjects = new HashMap<Object,String>();
+    private Map<Object, String> generatedObjects = new HashMap<>();
 
     public String generateScriptletForObject(Object bean, String varname) {
         return generateScriptletForObject(bean, varname, null);
     }
 
-    public String generateScriptletForObject(Object bean, String varname, Class varTypeHint) {
+    public <T> String generateScriptletForObject(T bean, String varname,
+                                                 Class<? extends T> varTypeHint) {
         String[] scriptletAndDecl = scriptletForObject(varname, bean, varTypeHint);
         return scriptletAndDecl[0] + "\n// -------------------------------\n\n" + scriptletAndDecl[1];
     }
@@ -70,8 +71,8 @@ public class ScriptletGenerator {
         return Introspector.decapitalize(className);
     }
 
-    private String[] scriptletFromFields(Object bean, String varname) {
-        Class beanClass = bean.getClass();
+    private <T> String[] scriptletFromFields(T bean, String varname) {
+        Class<?> beanClass = bean.getClass();
         StringBuilder decl = new StringBuilder();
         StringBuilder scriptlet = new StringBuilder();
 
@@ -156,7 +157,8 @@ public class ScriptletGenerator {
      * primitives, etc. setup scriptlet, and String[1] being the bean
      * setup scriptlet
      */
-    private String[] scriptletForObject(String varname, Object bean, Class varTypeHint) {
+    private <T> String[] scriptletForObject(String varname, T bean,
+                                            Class<?> varTypeHint) {
         if(bean == null) {
             if(varTypeHint != null) {
                 return new String[] { "", varTypeHint.getCanonicalName() + " " + varname + " = null;/* Null */\n" };
@@ -165,7 +167,7 @@ public class ScriptletGenerator {
             return new String[] { "", varname + " = null;/* Null */\n" };
         }
 
-        Class beanType = bean.getClass();
+        Class<?> beanType = bean.getClass();
 
         // Handle types
         // Array: Unpack
@@ -303,7 +305,7 @@ public class ScriptletGenerator {
         return "\"" + escape(value) + "\"";
     }
 
-    private String classRefScriptlet(Class clazz) {
+    private String classRefScriptlet(Class<?> clazz) {
         return clazz.getName() + ".class";
     }
 
@@ -338,6 +340,7 @@ public class ScriptletGenerator {
         return new String[] { "", scr.toString() };
     }
 
+    @SuppressWarnings("rawtypes")
     private String[] unpackArray(String varname, Object arrayBean,
                                  Class<?> elementType) {
         StringBuilder elementScr = new StringBuilder();
@@ -398,6 +401,7 @@ public class ScriptletGenerator {
         return new String[] { elementScr.toString(), arrayScr.toString() };
     }
 
+    @SuppressWarnings("rawtypes")
     private String[] unpackCollection(String varname, Collection c) {
         StringBuilder elementScr = new StringBuilder();
         StringBuilder cScr = new StringBuilder();
@@ -451,6 +455,7 @@ public class ScriptletGenerator {
         return new String[] { elementScr.toString(), cScr.toString() };
     }
 
+    @SuppressWarnings("rawtypes")
     private String[] unpackMapAsKeyValue(String varname, Map m) {
         StringBuilder elementScr = new StringBuilder();
         StringBuilder mapScr = new StringBuilder();
@@ -461,7 +466,7 @@ public class ScriptletGenerator {
         mapScr.append(" = new ");
         mapScr.append(m.getClass().getCanonicalName());
         mapScr.append("();\n");
-        
+
 
         int i = 0;
         for(Object key : m.keySet()) {
@@ -472,7 +477,7 @@ public class ScriptletGenerator {
                 if(!keyScriptlet[0].equals("")) {
                     elementScr.append(keyScriptlet[0]);
                 }
-            
+
                 if(!keyScriptlet[1].equals("")) {
                     mapScr.append(keyScriptlet[1]);
                 }
@@ -482,7 +487,7 @@ public class ScriptletGenerator {
                 if(!valScriptlet[0].equals("")) {
                     elementScr.append(valScriptlet[0]);
                 }
-            
+
                 if(!valScriptlet[1].equals("")) {
                     mapScr.append(valScriptlet[1]);
                 }
