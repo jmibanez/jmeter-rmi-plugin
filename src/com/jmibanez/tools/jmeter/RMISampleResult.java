@@ -22,6 +22,8 @@ import java.io.ObjectInputStream;
 public class RMISampleResult
     extends SampleResult {
 
+    public static final long serialVersionUID = 87677870L;
+
     private Method method;
     private Object[] arguments;
 

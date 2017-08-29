@@ -392,6 +392,8 @@ public class ScriptletGeneratorTest extends TestCase {
     public static class SimpleBeanInstance
         implements Serializable {
 
+        public static final long serialVersionUID = 989L;
+
         private String name;
         private int age;
 
@@ -452,6 +454,8 @@ public class ScriptletGeneratorTest extends TestCase {
     public static class SerializableBeanWithoutDefaultConstructor
         implements Serializable {
 
+        public static final long serialVersionUID = 222224L;
+
         private SimpleBeanInstance other;
 
         public SerializableBeanWithoutDefaultConstructor(SimpleBeanInstance other) {
@@ -469,6 +473,9 @@ public class ScriptletGeneratorTest extends TestCase {
 
     public static class ComplexBeanInstance
         implements Serializable {
+
+        public static final long serialVersionUID = 222223333L;
+
         private List<SimpleBeanInstance> personList;
         private Map<String, Object> someMap;
 
@@ -515,6 +522,9 @@ public class ScriptletGeneratorTest extends TestCase {
 
     public static class CyclicClass
         implements Serializable {
+
+        public static final long serialVersionUID = 76144249L;
+
         public List<CyclicClassChild> children = new ArrayList<CyclicClassChild>();
 
         @Override
@@ -530,6 +540,9 @@ public class ScriptletGeneratorTest extends TestCase {
 
     public static class CyclicClassChild
         implements Serializable {
+
+        public static final long serialVersionUID = 9911113455L;
+
         public CyclicClass parent;
         public String name;
 

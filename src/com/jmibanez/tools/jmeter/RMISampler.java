@@ -44,6 +44,8 @@ public class RMISampler
     extends AbstractSampler
     implements ThreadListener {
 
+    public static final long serialVersionUID = 6779L;
+
     public static final String REMOTE_OBJECT_CONFIG = "RMISampler.remote_object_config";
     public static final String TARGET_NAME = "RMISampler.target_name";
     public static final String METHOD_NAME = "RMISampler.method_name";

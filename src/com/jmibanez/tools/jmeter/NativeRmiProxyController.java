@@ -50,6 +50,8 @@ import com.jmibanez.tools.jmeter.util.ScriptletGenerator;
  */
 public class NativeRmiProxyController extends GenericController {
 
+    public static final long serialVersionUID = 33459L;
+
     public static final String TARGET_RMI_NAME = "RmiProxy.target_rmi_name";
     public static final String PROXY_NAMING_PORT = "RmiProxy.proxy_naming_port";
     public static final String PROXY_PORT = "RmiProxy.proxy_port";

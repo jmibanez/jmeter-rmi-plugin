@@ -44,6 +44,8 @@ public class RMIRemoteObjectConfig
     extends ConfigTestElement
     implements ThreadListener {
 
+    public static final long serialVersionUID = 43339L;
+
     public static final String TARGET_RMI_NAME = "RmiRemoteObjectConfig.target_rmi_name";
     public static final String REMOTE_INSTANCES = "RMIRemoteObject.instances";
 

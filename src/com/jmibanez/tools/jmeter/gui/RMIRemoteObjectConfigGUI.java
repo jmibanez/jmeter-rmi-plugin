@@ -28,6 +28,8 @@ import org.apache.jmeter.gui.util.VerticalPanel;
  */
 public class RMIRemoteObjectConfigGUI extends AbstractConfigGui {
 
+    public static final long serialVersionUID = 98030L;
+
     private static final String TARGETNAME_FIELD = "targetRmiName";
 
     private JTextField targetRmiName;

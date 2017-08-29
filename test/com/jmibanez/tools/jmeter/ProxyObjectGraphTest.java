@@ -234,6 +234,8 @@ public class ProxyObjectGraphTest extends TestCase {
         extends UnicastRemoteObject
         implements TestRemote {
 
+        public static final long serialVersionUID = 789L;
+
         public TestRemoteInstance()
             throws RemoteException {
             super();
