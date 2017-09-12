@@ -16,6 +16,7 @@ import org.apache.commons.logging.LogFactory;
 import java.rmi.server.RemoteObject;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+import org.apache.jmeter.engine.util.NoThreadClone;
 import org.apache.jmeter.testelement.ThreadListener;
 import org.apache.jmeter.testelement.property.ObjectProperty;
 import org.apache.jmeter.testelement.property.JMeterProperty;
@@ -42,7 +43,8 @@ import static com.jmibanez.tools.jmeter.util.ArgumentsUtil.unpackArgs;
  */
 public class RMISampler
     extends AbstractSampler
-    implements ThreadListener {
+    implements NoThreadClone,
+               ThreadListener {
 
     public static final long serialVersionUID = 6779L;
 
