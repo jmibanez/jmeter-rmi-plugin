@@ -15,6 +15,7 @@ import java.rmi.Naming;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.jmeter.config.ConfigTestElement;
+import org.apache.jmeter.engine.util.NoThreadClone;
 import org.apache.jmeter.testelement.ThreadListener;
 import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.testelement.property.StringProperty;
@@ -42,7 +43,8 @@ import com.jmibanez.tools.jmeter.impl.SwitchingRemoteRegistry;
  */
 public class RMIRemoteObjectConfig
     extends ConfigTestElement
-    implements ThreadListener {
+    implements NoThreadClone,
+               ThreadListener {
 
     public static final long serialVersionUID = 43339L;
 
