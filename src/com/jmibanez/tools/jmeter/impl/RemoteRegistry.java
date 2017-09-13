@@ -19,7 +19,7 @@ import com.jmibanez.tools.jmeter.RMIRemoteObjectConfig;
 public class RemoteRegistry
     implements InstanceRegistry, InstanceParameterRegistry {
 
-    private Map<String, Map<String, Class[]>> methodTypesMap = new HashMap<>();
+    private Map<String, Map<String, Class<?>[]>> methodTypesMap = new HashMap<>();
     private Map<String, Remote> instanceRef = new HashMap<>();
 
     private static Log log = LogFactory.getLog(RemoteRegistry.class);
@@ -42,7 +42,7 @@ public class RemoteRegistry
     private void registerInstanceAtKey(final String key, final Remote instance)
         throws RemoteException {
         if (!methodTypesMap.containsKey(key)) {
-            Map<String, Class[]> instanceMethodTypesMap = configureMethodBindings(instance);
+            Map<String, Class<?>[]> instanceMethodTypesMap = configureMethodBindings(instance);
             methodTypesMap.put(key, instanceMethodTypesMap);
         }
         else {
@@ -67,23 +67,23 @@ public class RemoteRegistry
     }
 
     @Override
-    public Class[] getArgumentTypes(final String key, final String methodName) {
+    public Class<?>[] getArgumentTypes(final String key, final String methodName) {
         return methodTypesMap.get(key).get(methodName);
     }
 
     @Override
     public void setArgumentTypes(String key, String methodName,
-                                 Class[] argTypes) {
+                                 Class<?>[] argTypes) {
         methodTypesMap.get(key).put(methodName, argTypes);
     }
 
-    private Map<String, Class[]> configureMethodBindings(Remote target) {
-        Map<String, Class[]> instanceMethodTypesMap = new HashMap<String, Class[]>();
-        Class targetClass = target.getClass();
+    private Map<String, Class<?>[]> configureMethodBindings(Remote target) {
+        Map<String, Class<?>[]> instanceMethodTypesMap = new HashMap<>();
+        Class<?> targetClass = target.getClass();
         Method[] targetMethods = targetClass.getMethods();
         for(Method m : targetMethods) {
             String rawMethodName = m.getName();
-            Class[] argTypes = m.getParameterTypes();
+            Class<?>[] argTypes = m.getParameterTypes();
             StringBuilder sb = new StringBuilder();
             sb.append(rawMethodName);
 
@@ -92,7 +92,7 @@ public class RemoteRegistry
             }
             else {
                 sb.append(":");
-                for(Class c : argTypes) {
+                for(Class<?> c : argTypes) {
                     sb.append(c.getName());
                     sb.append(",");
                 }

@@ -50,6 +50,8 @@ import com.jmibanez.tools.jmeter.util.ScriptletGenerator;
  */
 public class NativeRmiProxyController extends GenericController {
 
+    public static final long serialVersionUID = 33459L;
+
     public static final String TARGET_RMI_NAME = "RmiProxy.target_rmi_name";
     public static final String PROXY_NAMING_PORT = "RmiProxy.proxy_naming_port";
     public static final String PROXY_PORT = "RmiProxy.proxy_port";
@@ -130,16 +132,12 @@ public class NativeRmiProxyController extends GenericController {
         this.target = target;
     }
 
-    public Class getGuiClass() {
-        return com.jmibanez.tools.jmeter.gui.NativeRmiProxyControllerGui.class;
-    }
-
-    private JMeterTreeNode findFirstNodeOfType(Class type) {
+    private JMeterTreeNode findFirstNodeOfType(Class<?> type) {
         JMeterTreeModel treeModel = GuiPackage.getInstance().getTreeModel();
-        List nodes = treeModel.getNodesOfType(type);
-        Iterator iter = nodes.iterator();
+        List<JMeterTreeNode> nodes = treeModel.getNodesOfType(type);
+        Iterator<JMeterTreeNode> iter = nodes.iterator();
         while (iter.hasNext()) {
-            JMeterTreeNode node = (JMeterTreeNode) iter.next();
+            JMeterTreeNode node = iter.next();
             if (node.isEnabled()) {
                 return node;
             }

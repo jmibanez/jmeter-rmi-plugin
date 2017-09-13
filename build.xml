@@ -95,9 +95,9 @@
            fork="true"
            includeantruntime="false"
            debug="${build.debug}"
-           source="1.7"
-           target="1.7">
-      <compilerarg line="-Xlint:deprecation -Xlint:unchecked" />
+           source="1.8"
+           target="1.8">
+      <compilerarg line="-Xlint:all" />
       <classpath>
         <path refid="development.lib" />
       </classpath>
@@ -110,9 +110,11 @@
     <javac srcdir="${test.directory}"
            destdir="${build.test.directory}"
            debug="${build.debug}"
-           includeantruntime="false">
+           includeantruntime="false"
+           source="1.8"
+           target="1.8">
       <!-- compilerarg line="${build.compiler.args}" / -->
-      <compilerarg line="-Xlint:deprecation -Xlint:unchecked" />
+      <compilerarg line="-Xlint:all" />
       <classpath>
         <path refid="test.lib" />
         <pathelement location="${build.directory}" />

@@ -4,7 +4,7 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface InstanceParameterRegistry {
-    public Class[] getArgumentTypes(String handle, String methodName);
+    public Class<?>[] getArgumentTypes(String handle, String methodName);
     public void setArgumentTypes(String handle, String methodName,
-                                 Class[] argTypes);
+                                 Class<?>[] argTypes);
 }

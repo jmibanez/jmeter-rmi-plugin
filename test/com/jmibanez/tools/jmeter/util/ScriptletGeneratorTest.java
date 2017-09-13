@@ -99,7 +99,7 @@ public class ScriptletGeneratorTest extends TestCase {
         simple.setAge(42);
         simple.c = '\n';
 
-        List l = new ArrayList();
+        List<SimpleBeanInstance> l = new ArrayList<>();
         l.add(simple);
 
         SimpleBeanInstance simple2 = new SimpleBeanInstance();
@@ -208,6 +208,7 @@ public class ScriptletGeneratorTest extends TestCase {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     public void testGenerateScriptletForList()
         throws Exception {
         SimpleBeanInstance a = new SimpleBeanInstance();
@@ -391,6 +392,8 @@ public class ScriptletGeneratorTest extends TestCase {
     public static class SimpleBeanInstance
         implements Serializable {
 
+        public static final long serialVersionUID = 989L;
+
         private String name;
         private int age;
 
@@ -434,6 +437,11 @@ public class ScriptletGeneratorTest extends TestCase {
         }
 
         @Override
+        public int hashCode() {
+            return name.hashCode() << 16 | (age << 8) | (c << 4);
+        }
+
+        @Override
         public boolean equals(Object other) {
             if(!(other instanceof SimpleBeanInstance)) {
                 return false;
@@ -450,6 +458,8 @@ public class ScriptletGeneratorTest extends TestCase {
 
     public static class SerializableBeanWithoutDefaultConstructor
         implements Serializable {
+
+        public static final long serialVersionUID = 222224L;
 
         private SimpleBeanInstance other;
 
@@ -468,8 +478,11 @@ public class ScriptletGeneratorTest extends TestCase {
 
     public static class ComplexBeanInstance
         implements Serializable {
-        private List personList;
-        private Map someMap;
+
+        public static final long serialVersionUID = 222223333L;
+
+        private List<SimpleBeanInstance> personList;
+        private Map<String, Object> someMap;
 
         private SimpleBeanInstance other;
 
@@ -477,10 +490,10 @@ public class ScriptletGeneratorTest extends TestCase {
         }
 
 
-        public final List getPersonList() {
+        public final List<SimpleBeanInstance> getPersonList() {
             return this.personList;
         }
-        public final void setPersonList(final List argPersonList) {
+        public final void setPersonList(final List<SimpleBeanInstance> argPersonList) {
             this.personList = argPersonList;
         }
 
@@ -491,11 +504,21 @@ public class ScriptletGeneratorTest extends TestCase {
             this.other = argOther;
         }
 
-        public final Map getSomeMap() {
+        public final Map<String, Object> getSomeMap() {
             return this.someMap;
         }
-        public final void setSomeMap(final Map argSomeMap) {
+        public final void setSomeMap(final Map<String, Object> argSomeMap) {
             this.someMap = argSomeMap;
+        }
+
+        @Override
+        public int hashCode() {
+            int personListHash = (personList != null) ? personList.hashCode() : 0;
+            int someMapHash = (someMap != null) ? someMap.hashCode() : 0;
+            int otherHash = (other != null) ? other.hashCode() : 0;
+
+            return (personListHash << 24) | (someMapHash << 16)
+                | (otherHash << 8);
         }
 
         @Override
@@ -514,7 +537,15 @@ public class ScriptletGeneratorTest extends TestCase {
 
     public static class CyclicClass
         implements Serializable {
+
+        public static final long serialVersionUID = 76144249L;
+
         public List<CyclicClassChild> children = new ArrayList<CyclicClassChild>();
+
+        @Override
+        public int hashCode() {
+            return children.hashCode();
+        }
 
         @Override
         public boolean equals(Object other) {
@@ -529,9 +560,18 @@ public class ScriptletGeneratorTest extends TestCase {
 
     public static class CyclicClassChild
         implements Serializable {
+
+        public static final long serialVersionUID = 9911113455L;
+
         public CyclicClass parent;
         public String name;
 
+        @Override
+        public int hashCode() {
+            return name.hashCode();
+        }
+
+        @Override
         public boolean equals(Object other) {
             if(!(other instanceof CyclicClassChild)) {
                 return false;

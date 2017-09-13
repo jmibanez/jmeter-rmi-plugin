@@ -211,6 +211,12 @@ public class ProxyObjectGraphTest extends TestCase {
             this.age = argAge;
         }
 
+
+        @Override
+        public int hashCode() {
+            return name.hashCode() << 16 | (age << 8) | (c << 4);
+        }
+
         @Override
         public boolean equals(Object other) {
             if(!(other instanceof SimpleBeanInstance)) {
@@ -234,6 +240,8 @@ public class ProxyObjectGraphTest extends TestCase {
         extends UnicastRemoteObject
         implements TestRemote {
 
+        public static final long serialVersionUID = 789L;
+
         public TestRemoteInstance()
             throws RemoteException {
             super();
@@ -246,8 +254,8 @@ public class ProxyObjectGraphTest extends TestCase {
     }
 
     public static class ComplexBeanInstance {
-        private List personList;
-        private Map someMap;
+        private List<Object> personList;
+        private Map<String, Object> someMap;
 
         private SimpleBeanInstance other;
         private TestRemote otherCall;
@@ -259,10 +267,10 @@ public class ProxyObjectGraphTest extends TestCase {
             this.otherCall = otherCall;
         }
 
-        public final List getPersonList() {
+        public final List<Object> getPersonList() {
             return this.personList;
         }
-        public final void setPersonList(final List argPersonList) {
+        public final void setPersonList(final List<Object> argPersonList) {
             this.personList = argPersonList;
         }
 
@@ -273,15 +281,26 @@ public class ProxyObjectGraphTest extends TestCase {
             this.other = argOther;
         }
 
-        public final Map getSomeMap() {
+        public final Map<String, Object> getSomeMap() {
             return this.someMap;
         }
-        public final void setSomeMap(final Map argSomeMap) {
+        public final void setSomeMap(final Map<String, Object> argSomeMap) {
             this.someMap = argSomeMap;
         }
 
         public final TestRemote getOtherCall() {
             return this.otherCall;
+        }
+
+        @Override
+        public int hashCode() {
+            int personListHash = (personList != null) ? personList.hashCode() : 0;
+            int someMapHash = (someMap != null) ? someMap.hashCode() : 0;
+            int otherHash = (other != null) ? other.hashCode() : 0;
+            int otherCallHash = (otherCall != null) ? otherCall.hashCode() : 0;
+
+            return (personListHash << 24) | (someMapHash << 16)
+                | (otherHash << 8) | otherCallHash;
         }
 
         @Override
@@ -314,6 +333,12 @@ public class ProxyObjectGraphTest extends TestCase {
         }
 
         @Override
+        public int hashCode() {
+            int otherCallHash = (otherCall != null) ? otherCall.hashCode() : 0;
+            return (children.hashCode() << 16)  | otherCallHash;
+        }
+
+        @Override
         public boolean equals(Object other) {
             if(!(other instanceof CyclicClass)) {
                 return false;
@@ -341,6 +366,12 @@ public class ProxyObjectGraphTest extends TestCase {
             return this.otherCall;
         }
 
+        @Override
+        public int hashCode() {
+            return name.hashCode();
+        }
+
+        @Override
         public boolean equals(Object other) {
             if(!(other instanceof CyclicClassChild)) {
                 return false;

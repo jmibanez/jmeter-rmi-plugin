@@ -49,7 +49,7 @@ public class ReflectionUtil {
         else {
             objenesis = new ObjenesisStd();
         }
-        ObjectInstantiator factory = objenesis.getInstantiatorOf(clazz);
-        return (T) factory.newInstance();
+        ObjectInstantiator<T> factory = objenesis.getInstantiatorOf(clazz);
+        return factory.newInstance();
     }
 }

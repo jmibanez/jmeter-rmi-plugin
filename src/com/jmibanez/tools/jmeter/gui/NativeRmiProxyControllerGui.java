@@ -50,6 +50,8 @@ import org.apache.jmeter.gui.util.JTextScrollPane;
  */
 public class NativeRmiProxyControllerGui extends LogicControllerGui implements KeyListener, UnsharedComponent, ItemListener, ActionListener, JMeterGUIComponent {
 
+    public static final long serialVersionUID = 800030L;
+
     private static final String TARGETNAME_FIELD = "targetRmiName";
     private static final String PROXYNAMINGPORT_FIELD = "proxyNamingPort";
     private static final String PROXYPORT_FIELD = "proxyPort";

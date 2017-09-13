@@ -44,6 +44,8 @@ public class RMISampler
     extends AbstractSampler
     implements ThreadListener {
 
+    public static final long serialVersionUID = 6779L;
+
     public static final String REMOTE_OBJECT_CONFIG = "RMISampler.remote_object_config";
     public static final String TARGET_NAME = "RMISampler.target_name";
     public static final String METHOD_NAME = "RMISampler.method_name";
@@ -133,11 +135,6 @@ public class RMISampler
     }
 
 
-    public Class getGuiClass() {
-        return RMISamplerGUI.class;
-    }
-
-
     public Object[] getArguments() {
         return fromArgumentsScript();
     }
@@ -193,8 +190,8 @@ public class RMISampler
         String targetName = getTargetName();
         Remote target = remoteObj.getTarget(targetName);
 
-        Class[] argTypes = remoteObj.getArgumentTypes(targetName,
-                                                      methodName);
+        Class<?>[] argTypes = remoteObj.getArgumentTypes(targetName,
+                                                         methodName);
 
         try {
             Class<?> targetClass = target.getClass();
