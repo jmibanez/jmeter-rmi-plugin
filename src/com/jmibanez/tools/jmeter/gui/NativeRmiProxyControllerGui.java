@@ -13,6 +13,7 @@ import org.apache.jmeter.gui.JMeterGUIComponent;
 import java.util.Collection;
 import javax.swing.JPopupMenu;
 import org.apache.jmeter.testelement.TestElement;
+import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
@@ -35,9 +36,10 @@ import java.awt.event.KeyListener;
 import javax.swing.JLabel;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
-import org.apache.jmeter.gui.util.VerticalPanel;
+import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.JSyntaxTextArea;
 import org.apache.jmeter.gui.util.JTextScrollPane;
+import org.apache.jmeter.gui.util.VerticalPanel;
 
 /**
  * Describe class NativeRmiProxyControllerGui here.
@@ -55,6 +57,7 @@ public class NativeRmiProxyControllerGui extends LogicControllerGui implements K
     private static final String TARGETNAME_FIELD = "targetRmiName";
     private static final String PROXYNAMINGPORT_FIELD = "proxyNamingPort";
     private static final String PROXYPORT_FIELD = "proxyPort";
+    private static final String SAMPLERNAMEFORMAT_FIELD = "samplerNameFormat";
     private static final String BINDINGSCRIPT_FIELD = "bindingScript";
 
     private static final String START = "start";
@@ -65,6 +68,7 @@ public class NativeRmiProxyControllerGui extends LogicControllerGui implements K
     private JTextField targetRmiName;
     private JTextField proxyNamingPort;
     private JTextField proxyPort;
+    private JTextField samplerNameFormat;
     private JSyntaxTextArea bindingScript;
     private JTextScrollPane scroller;
 
@@ -238,6 +242,7 @@ public class NativeRmiProxyControllerGui extends LogicControllerGui implements K
             model.setTargetRmiName(targetRmiName.getText());
             model.setProxyNamingPort(proxyNamingPort.getText());
             model.setProxyPort(proxyPort.getText());
+            model.setSamplerNameFormat(samplerNameFormat.getText());
             model.setBindingScript(bindingScript.getText());
         }
     }
@@ -253,6 +258,7 @@ public class NativeRmiProxyControllerGui extends LogicControllerGui implements K
         targetRmiName.setText(model.getTargetRmiName());
         proxyNamingPort.setText(Integer.toString(model.getProxyNamingPort()));
         proxyPort.setText(Integer.toString(model.getProxyPort()));
+        samplerNameFormat.setText(model.getSamplerNameFormat());
         bindingScript.setText(model.getBindingScript());
     }
 
@@ -296,22 +302,41 @@ public class NativeRmiProxyControllerGui extends LogicControllerGui implements K
         JLabel portLabel = new JLabel("Proxy Port");
         portLabel.setLabelFor(proxyPort);
 
-        Box configBox = Box.createVerticalBox();
+        samplerNameFormat = new JTextField("[%1$s] %2$d - %3$s", 100);
+        samplerNameFormat.setName(SAMPLERNAMEFORMAT_FIELD);
+
+        JLabel samplerNameFormatLabel = new JLabel("Sampler Name Format");
+        samplerNameFormatLabel.setLabelFor(samplerNameFormat);
+
+        JPanel configBox = new HorizontalPanel();
+
+        JPanel configLeftBox = new VerticalPanel();
+        configLeftBox.setPreferredSize(new Dimension(400, 120));
+        JPanel configRightBox = new VerticalPanel();
+        configRightBox.setPreferredSize(new Dimension(0, 120));
 
         JPanel targetRmiPanel = new VerticalPanel();
         targetRmiPanel.add(label);
         targetRmiPanel.add(targetRmiName);
-        configBox.add(targetRmiPanel);
+        configLeftBox.add(targetRmiPanel);
+
+        JPanel samplerNameFormatPanel = new VerticalPanel();
+        samplerNameFormatPanel.add(samplerNameFormatLabel);
+        samplerNameFormatPanel.add(samplerNameFormat);
+        configLeftBox.add(samplerNameFormatPanel);
 
         JPanel proxyNamingPortPanel = new VerticalPanel();
         proxyNamingPortPanel.add(nPortLabel);
         proxyNamingPortPanel.add(proxyNamingPort);
-        configBox.add(proxyNamingPortPanel);
+        configRightBox.add(proxyNamingPortPanel);
 
         JPanel proxyPortPanel = new VerticalPanel();
         proxyPortPanel.add(portLabel);
         proxyPortPanel.add(proxyPort);
-        configBox.add(proxyPortPanel);
+        configRightBox.add(proxyPortPanel);
+
+        configBox.add(configLeftBox);
+        configBox.add(configRightBox);
 
         bindingScript = JSyntaxTextArea.getInstance(20, 20);
         scroller = JTextScrollPane.getInstance(bindingScript, true);
