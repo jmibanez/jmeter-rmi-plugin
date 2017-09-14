@@ -86,7 +86,8 @@ public class RMISampler
             argInterpreter.eval(getArgumentsScript());
         }
         catch(EvalError evalErr) {
-            log.warn(getName() + ": Error initially evaluating script: " + evalErr.getMessage());
+            log.warn(getName() + ": Error initially evaluating script: " + evalErr.getMessage(),
+                     evalErr);
         }
     }
 
@@ -135,7 +136,8 @@ public class RMISampler
     }
 
 
-    public Object[] getArguments() {
+    public Object[] getArguments()
+        throws EvalError {
         return fromArgumentsScript();
     }
 
@@ -143,7 +145,8 @@ public class RMISampler
         setProperty(new ObjectProperty(ARGUMENTS, arguments));
     }
 
-    private Object[] fromArgumentsScript() {
+    private Object[] fromArgumentsScript()
+        throws EvalError {
         JMeterContext ctx = JMeterContextService.getContext();
         JMeterVariables vars = ctx.getVariables();
         Interpreter argInterpreter = getInterpreter();
@@ -156,9 +159,8 @@ public class RMISampler
         catch(EvalError evalErr) {
             log.error(getName() + ": Error evaluating script: " + evalErr.getMessage() + "; argInterpreter = " + argInterpreter,
                       evalErr);
+            throw evalErr;
         }
-
-        return null;
     }
 
     protected SampleResult sample() {
@@ -168,10 +170,20 @@ public class RMISampler
 
         RMIRemoteObjectConfig remoteObj = getRemoteObjectConfig();
 
+        String targetName = getTargetName();
         String methodName = getMethodName();
+        res.setSampleLabel(generateSampleLabel(targetName, methodName));
 
         log.debug("Getting arguments");
-        Object[] args = getArguments();
+        Object[] args;
+        try {
+            args = getArguments();
+        }
+        catch (EvalError evalErr) {
+            res.sampleEnd();
+            res.setSuccessful(false);
+            return res;
+        }
 
         // Pack and then unpack args, so we can safely measure
         // serialized argument size
@@ -187,7 +199,6 @@ public class RMISampler
         res.connectEnd();
 
         log.debug("Getting target");
-        String targetName = getTargetName();
         Remote target = remoteObj.getTarget(targetName);
 
         Class<?>[] argTypes = remoteObj.getArgumentTypes(targetName,
@@ -199,7 +210,6 @@ public class RMISampler
             Method m = targetClass.getMethod(actualMethodName, argTypes);
 
             res.setMethod(m);
-            res.setSampleLabel(generateSampleLabel(targetName, methodName));
             res.setArguments(args);
 
             // Assume success
@@ -210,11 +220,14 @@ public class RMISampler
             res.sampleEnd();
             res.setReturnValue(retval);
         }
-        catch(NoSuchMethodException noMethod) {
-            throw new RuntimeException(noMethod);
-        }
-        catch(IllegalAccessException accessEx) {
-            throw new RuntimeException(accessEx);
+        catch(NoSuchMethodException | IllegalAccessException ex) {
+            res.sampleEnd();
+            res.setReturnValue(ex);
+
+            // Force setting the sampled as failed, as we couldn't
+            // invoke the method
+            res.setSuccessful(false);
+            log.warn(getName() + ": Could not invoke specified method", ex);
         }
         catch(InvocationTargetException invokEx) {
             Throwable actualEx = invokEx.getCause();
