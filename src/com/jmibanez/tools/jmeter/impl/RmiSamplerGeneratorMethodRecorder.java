@@ -36,7 +36,7 @@ import org.apache.commons.logging.LogFactory;
 public class RmiSamplerGeneratorMethodRecorder
     implements MethodRecorder {
 
-    public static final String DEFAULT_SAMPLER_NAME_FORMAT = "[%1$s] %2$d - %3$s";
+    public static final String DEFAULT_SAMPLER_NAME_FORMAT = "[%1$s] %2$d - %3$s:%4$s";
 
     private static Log log = LogFactory.getLog(RmiSamplerGeneratorMethodRecorder.class);
 
@@ -161,28 +161,31 @@ public class RmiSamplerGeneratorMethodRecorder
         BeanShellPostProcessor retValProc = null;
         sampler.setProperty(TestElement.TEST_CLASS, RMISampler.class.getName());
         sampler.setProperty(TestElement.GUI_CLASS, RMISamplerGUI.class.getName());
-        sampler.setTargetName(r.getTarget());
+        sampler.setMethodName(r.getMangledMethodName());
 
         String instanceName = r.getTarget();
+        sampler.setTargetName(instanceName);
         if (instanceName == null) {
             instanceName = "";
         }
 
         int index = r.getIndex();
         String method = r.getMethod();
-        sampler.setMethodName(method);
+        String mangledArgs = r.getMangledArguments();
+
         String samplerName = "";
+
         try {
             samplerName = String.format(samplerNameFormat,
                                         instanceName, index,
-                                        method);
+                                        method, mangledArgs);
         }
         catch(Exception e) {
             // use default format
             log.warn("Invalid sampler name format", e);
             samplerName = String.format(DEFAULT_SAMPLER_NAME_FORMAT,
                                         instanceName, index,
-                                        method);
+                                        method, mangledArgs);
         }
         sampler.setName(samplerName);
 

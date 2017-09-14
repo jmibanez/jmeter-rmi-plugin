@@ -302,10 +302,10 @@ public class NativeRmiProxyControllerGui extends LogicControllerGui implements K
         JLabel portLabel = new JLabel("Proxy Port");
         portLabel.setLabelFor(proxyPort);
 
-        samplerNameFormat = new JTextField("[%1$s] %2$d - %3$s", 100);
+        samplerNameFormat = new JTextField("[%1$s] %2$d - %3$s:%4$s", 100);
         samplerNameFormat.setName(SAMPLERNAMEFORMAT_FIELD);
 
-        JLabel samplerNameFormatLabel = new JLabel("Sampler Name Format");
+        JLabel samplerNameFormatLabel = new JLabel("Sampler Name Format [1: Target; 2: Call Index; 3: Method; 4: Args]");
         samplerNameFormatLabel.setLabelFor(samplerNameFormat);
 
         JPanel configBox = new HorizontalPanel();
