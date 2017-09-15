@@ -25,9 +25,10 @@ import java.io.Serializable;
  * @version 1.0
  */
 public class SimpleLoggingMethodRecorder
-    extends UnicastRemoteObject 
+    extends UnicastRemoteObject
     implements MethodRecorder, Serializable
 {
+    private static final long serialVersionUID = 2124L;
     private static Log log = LogFactory.getLog(SimpleLoggingMethodRecorder.class);
 
     public SimpleLoggingMethodRecorder()

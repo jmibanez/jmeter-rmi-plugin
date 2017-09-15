@@ -26,6 +26,8 @@ import javax.swing.JCheckBox;
  */
 public class RMISamplerGUI extends AbstractSamplerGui {
 
+    public static final long serialVersionUID = 1112230L;
+
     private static final String TARGETNAME_FIELD = "targetName";
     private static final String METHODNAME_FIELD = "methodName";
     private static final String ARGUMENTS_SCRIPT_FIELD = "argumentsScript";

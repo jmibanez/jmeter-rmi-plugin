@@ -25,6 +25,8 @@ import java.io.Serializable;
 public class NullMethodRecorder
     implements MethodRecorder, Serializable
 {
+    private static final long serialVersionUID = 22345L;
+
     public NullMethodRecorder() {
     }
 

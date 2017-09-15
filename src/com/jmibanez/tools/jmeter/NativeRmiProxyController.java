@@ -50,9 +50,13 @@ import com.jmibanez.tools.jmeter.util.ScriptletGenerator;
  */
 public class NativeRmiProxyController extends GenericController {
 
+    public static final long serialVersionUID = 33459L;
+
     public static final String TARGET_RMI_NAME = "RmiProxy.target_rmi_name";
     public static final String PROXY_NAMING_PORT = "RmiProxy.proxy_naming_port";
     public static final String PROXY_PORT = "RmiProxy.proxy_port";
+
+    public static final String SAMPLER_NAME_FORMAT = "RmiProxy.sampler_name_format";
 
     public static final String BINDING_SCRIPT = "RmiProxy.binding_script";
 
@@ -121,6 +125,18 @@ public class NativeRmiProxyController extends GenericController {
         setProperty(new StringProperty(BINDING_SCRIPT, script));
     }
 
+    public String getSamplerNameFormat() {
+        String samplerNameFormat = getPropertyAsString(SAMPLER_NAME_FORMAT);
+        if (samplerNameFormat == null || "".equals(samplerNameFormat)) {
+            log.debug("Compat: Empty format, using default");
+            samplerNameFormat = RmiSamplerGeneratorMethodRecorder.DEFAULT_SAMPLER_NAME_FORMAT;
+        }
+        return samplerNameFormat;
+    }
+
+    public void setSamplerNameFormat(final String samplerNameFormat) {
+        setProperty(new StringProperty(SAMPLER_NAME_FORMAT, samplerNameFormat));
+    }
 
     public JMeterTreeNode getTarget() {
         return target;
@@ -130,16 +146,12 @@ public class NativeRmiProxyController extends GenericController {
         this.target = target;
     }
 
-    public Class getGuiClass() {
-        return com.jmibanez.tools.jmeter.gui.NativeRmiProxyControllerGui.class;
-    }
-
-    private JMeterTreeNode findFirstNodeOfType(Class type) {
+    private JMeterTreeNode findFirstNodeOfType(Class<?> type) {
         JMeterTreeModel treeModel = GuiPackage.getInstance().getTreeModel();
-        List nodes = treeModel.getNodesOfType(type);
-        Iterator iter = nodes.iterator();
+        List<JMeterTreeNode> nodes = treeModel.getNodesOfType(type);
+        Iterator<JMeterTreeNode> iter = nodes.iterator();
         while (iter.hasNext()) {
-            JMeterTreeNode node = (JMeterTreeNode) iter.next();
+            JMeterTreeNode node = iter.next();
             if (node.isEnabled()) {
                 return node;
             }
@@ -201,8 +213,14 @@ public class NativeRmiProxyController extends GenericController {
         proxy.setNamingPort(getProxyNamingPort());
         proxy.setBindingScript(getBindingScript());
 
+        log.debug("Target RMI name:\t" + getTargetRmiName());
+        log.debug("Naming port:\t" + getProxyNamingPort());
+        log.debug("Server port:\t" + getProxyPort());
+
         RmiSamplerGeneratorMethodRecorder recorder = new RmiSamplerGeneratorMethodRecorder();
         recorder.setTarget(this);
+        recorder.setSamplerNameFormat(getSamplerNameFormat());
+        log.debug("Sampler name format:\t" + getSamplerNameFormat());
         proxy.setMethodRecorder(recorder);
 
         log.info("Starting proxy thread");

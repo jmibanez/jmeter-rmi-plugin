@@ -12,6 +12,7 @@ import org.apache.jmeter.testelement.TestElement;
 import java.awt.BorderLayout;
 import javax.swing.Box;
 import com.jmibanez.tools.jmeter.RMIRemoteObjectConfig;
+import javax.swing.JCheckBox;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -28,9 +29,13 @@ import org.apache.jmeter.gui.util.VerticalPanel;
  */
 public class RMIRemoteObjectConfigGUI extends AbstractConfigGui {
 
+    public static final long serialVersionUID = 98030L;
+
     private static final String TARGETNAME_FIELD = "targetRmiName";
+    private static final String ISGLOBAL_FIELD = "isGlobal";
 
     private JTextField targetRmiName;
+    private JCheckBox isGlobal;
 
     private RMIRemoteObjectConfig model;
 
@@ -56,6 +61,7 @@ public class RMIRemoteObjectConfigGUI extends AbstractConfigGui {
         if(element instanceof RMIRemoteObjectConfig) {
             model = (RMIRemoteObjectConfig) element;
             model.setTargetRmiName(targetRmiName.getText());
+            model.setGlobal(isGlobal.isSelected());
         }
     }
 
@@ -70,6 +76,7 @@ public class RMIRemoteObjectConfigGUI extends AbstractConfigGui {
         super.configure(e);
         model = (RMIRemoteObjectConfig) e;
         targetRmiName.setText(model.getTargetRmiName());
+        isGlobal.setSelected(model.isGlobal());
     }
 
     private void init() {
@@ -78,15 +85,19 @@ public class RMIRemoteObjectConfigGUI extends AbstractConfigGui {
 
         add(makeTitlePanel(), BorderLayout.NORTH);
 
-        Box config = Box.createVerticalBox();
+        JPanel config = new VerticalPanel();
 
         targetRmiName = new JTextField("", 40);
         targetRmiName.setName(TARGETNAME_FIELD);
 
-        JLabel label = new JLabel("Target RMI name");
-        label.setLabelFor(targetRmiName);
+        JLabel targetLabel = new JLabel("Target RMI name");
+        targetLabel.setLabelFor(targetRmiName);
 
-        config.add(label);
+        isGlobal = new JCheckBox("Shared across threads");
+        isGlobal.setName(ISGLOBAL_FIELD);
+
+        config.add(isGlobal);
+        config.add(targetLabel);
         config.add(targetRmiName);
 
         JPanel configPanel = new VerticalPanel();

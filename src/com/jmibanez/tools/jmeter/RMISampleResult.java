@@ -22,6 +22,8 @@ import java.io.ObjectInputStream;
 public class RMISampleResult
     extends SampleResult {
 
+    public static final long serialVersionUID = 87677870L;
+
     private Method method;
     private Object[] arguments;
 
@@ -140,7 +142,9 @@ public class RMISampleResult
         if(method != null) {
             out.writeUTF(method.getClass().getCanonicalName());
             out.writeUTF("\nM:");
-            out.writeUTF(MethodCallRecord.constructMethodName(method.getName(), method.getParameterTypes()));
+            String[] builtNames = MethodCallRecord.constructMethodName(method.getName(),
+                                                                       method.getParameterTypes());
+            out.writeUTF(builtNames[0]);
         }
         else {
             out.writeUTF(classOwnerName);

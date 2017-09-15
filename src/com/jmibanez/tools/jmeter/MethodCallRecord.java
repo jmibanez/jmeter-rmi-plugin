@@ -21,9 +21,11 @@ public class MethodCallRecord
     private int index;
     private String target;
     private String method;
-    private Class[] argTypes;
+    private Class<?>[] argTypes;
     private Object[] args;
     private byte[] argsPacked;
+    private String mangledMethodName;
+    private String mangledArgs;
     private Object returnValue;
     private Throwable returnException;
     private boolean isException = false;
@@ -39,7 +41,10 @@ public class MethodCallRecord
         this.index = index;
         this.target = target;
         this.argTypes = m.getParameterTypes();
-        this.method = constructMethodName(m.getName(), this.argTypes);
+        this.method = m.getName();
+        String[] builtNames = constructMethodName(m.getName(), this.argTypes);
+        this.mangledMethodName = builtNames[0];
+        this.mangledArgs = builtNames[1];
         this.args = args;
         this.argsPacked = packArgs(this.args);
     }
@@ -56,6 +61,14 @@ public class MethodCallRecord
         return method;
     }
 
+    public String getMangledMethodName() {
+        return mangledMethodName;
+    }
+
+    public String getMangledArguments() {
+        return mangledArgs;
+    }
+
     public Object[] recreateArguments() {
         this.args = unpackArgs(this.argsPacked);
         return args;
@@ -65,7 +78,7 @@ public class MethodCallRecord
         return args;
     }
 
-    public Class[] getArgumentTypes() {
+    public Class<?>[] getArgumentTypes() {
         return argTypes;
     }
 
@@ -111,24 +124,25 @@ public class MethodCallRecord
         return remotePathsInReturn;
     }
 
-    public static String constructMethodName(String methodName, Class[] argTypes) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(methodName);
+    public static String[] constructMethodName(String methodName, Class<?>[] argTypes) {
+        StringBuilder full = new StringBuilder();
+        StringBuilder args = new StringBuilder();
 
         if(argTypes == null || argTypes.length == 0) {
-            sb.append(":");
-            return sb.toString();
+            return new String[] { methodName + ":", "" };
         }
 
-        sb.append(":");
-        for(Class c : argTypes) {
-            sb.append(c.getName());
-            sb.append(",");
+        full.append(methodName);
+        full.append(":");
+        for(Class<?> c : argTypes) {
+            args.append(c.getName());
+            args.append(",");
         }
 
-        sb.deleteCharAt(sb.length() - 1);
+        args.deleteCharAt(args.length() - 1);
 
-        return sb.toString();
+        full.append(args);
+        return new String[] { full.toString(), args.toString() };
     }
 
     private void writeObject(ObjectOutputStream out)

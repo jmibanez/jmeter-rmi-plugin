@@ -43,13 +43,14 @@ public class ScriptletGenerator {
 
     private static Log log = LogFactory.getLog(ScriptletGenerator.class);
 
-    private Map<Object,String> generatedObjects = new HashMap<Object,String>();
+    private Map<Object, String> generatedObjects = new HashMap<>();
 
     public String generateScriptletForObject(Object bean, String varname) {
         return generateScriptletForObject(bean, varname, null);
     }
 
-    public String generateScriptletForObject(Object bean, String varname, Class varTypeHint) {
+    public <T> String generateScriptletForObject(T bean, String varname,
+                                                 Class<? extends T> varTypeHint) {
         String[] scriptletAndDecl = scriptletForObject(varname, bean, varTypeHint);
         return scriptletAndDecl[0] + "\n// -------------------------------\n\n" + scriptletAndDecl[1];
     }
@@ -70,94 +71,8 @@ public class ScriptletGenerator {
         return Introspector.decapitalize(className);
     }
 
-    private String[] scriptletFromIntrospection(Object bean, String varname)
-        throws IntrospectionException {
-        StringBuilder decl = new StringBuilder();
-        StringBuilder scriptlet = new StringBuilder();
-
-        Class beanClass = bean.getClass();
-        BeanInfo bi = Introspector.getBeanInfo(beanClass);
-        int objCount = 1;
-        if(bi != null) {
-            PropertyDescriptor[] props = bi.getPropertyDescriptors();
-            for(PropertyDescriptor p : props) {
-                String varname_subvar = varname + "_" + p.getName();
-                if("class".equals(p.getName())) {
-                    continue;
-                }
-
-                Object val = null;
-                try {
-                    if(p.getReadMethod() != null) {
-                        val = p.getReadMethod().invoke(bean);
-                    }
-                    else {
-                        decl.append("/* ");
-                        decl.append(varname_subvar);
-                        decl.append(" is write-only, cannot get value */\n");
-                    }
-                }
-                catch(IllegalAccessException accessEx) {
-                    // Filler value
-                    val = "/* Couldn't populate value: IllegalAccessException */";
-                    log.warn("Couldn't populate value for property '" + p.getName() + "'", accessEx);
-                }
-                catch(InvocationTargetException invokEx) {
-                    val = "/* Couldn't populate value: InvocationTargetException */";
-                    log.warn("Couldn't populate value for property '" + p.getName() + "'", invokEx);
-                }
-                catch(Exception ex) {
-                    val = "/* Couldn't populate value because of exception: " + ex.getMessage() + " */";
-                }
-
-                objCount++;
-
-                if(val == null) {
-                    if(p.getWriteMethod() != null) {
-                        // Special-case: null
-                        scriptlet.append(varname);
-                        scriptlet.append(".");
-                        scriptlet.append(p.getWriteMethod().getName());
-
-                        scriptlet.append("(null);\n");
-                        continue;
-                    }
-                    else {
-                        decl.append("/* ");
-                        decl.append(varname_subvar);
-                        decl.append(" is read-only, value is null */\n");
-                        continue;
-                    }
-                }
-
-                String[] argScriptlet = scriptletForObject(varname_subvar, val, null);
-                decl.append(argScriptlet[0]);
-                scriptlet.append(argScriptlet[1]);
-
-                if(p.getWriteMethod() == null) {
-                    // Special-case read-only
-                    scriptlet.append("/* ");
-                    scriptlet.append(varname_subvar);
-                    scriptlet.append(" is read-only, no setter */\n");
-                    continue;
-                }
-
-                scriptlet.append(varname);
-                scriptlet.append(".");
-                scriptlet.append(p.getWriteMethod().getName());
-
-                scriptlet.append("(");
-                scriptlet.append(varname_subvar);
-                scriptlet.append(");");
-                scriptlet.append("\n");
-            }
-        }
-
-        return new String[] { decl.toString(), scriptlet.toString() };
-    }
-
-    private String[] scriptletFromFields(Object bean, String varname) {
-        Class beanClass = bean.getClass();
+    private <T> String[] scriptletFromFields(T bean, String varname) {
+        Class<?> beanClass = bean.getClass();
         StringBuilder decl = new StringBuilder();
         StringBuilder scriptlet = new StringBuilder();
 
@@ -242,7 +157,8 @@ public class ScriptletGenerator {
      * primitives, etc. setup scriptlet, and String[1] being the bean
      * setup scriptlet
      */
-    private String[] scriptletForObject(String varname, Object bean, Class varTypeHint) {
+    private <T> String[] scriptletForObject(String varname, T bean,
+                                            Class<?> varTypeHint) {
         if(bean == null) {
             if(varTypeHint != null) {
                 return new String[] { "", varTypeHint.getCanonicalName() + " " + varname + " = null;/* Null */\n" };
@@ -251,7 +167,7 @@ public class ScriptletGenerator {
             return new String[] { "", varname + " = null;/* Null */\n" };
         }
 
-        Class beanType = bean.getClass();
+        Class<?> beanType = bean.getClass();
 
         // Handle types
         // Array: Unpack
@@ -389,7 +305,7 @@ public class ScriptletGenerator {
         return "\"" + escape(value) + "\"";
     }
 
-    private String classRefScriptlet(Class clazz) {
+    private String classRefScriptlet(Class<?> clazz) {
         return clazz.getName() + ".class";
     }
 
@@ -424,6 +340,7 @@ public class ScriptletGenerator {
         return new String[] { "", scr.toString() };
     }
 
+    @SuppressWarnings("rawtypes")
     private String[] unpackArray(String varname, Object arrayBean,
                                  Class<?> elementType) {
         StringBuilder elementScr = new StringBuilder();
@@ -484,6 +401,7 @@ public class ScriptletGenerator {
         return new String[] { elementScr.toString(), arrayScr.toString() };
     }
 
+    @SuppressWarnings("rawtypes")
     private String[] unpackCollection(String varname, Collection c) {
         StringBuilder elementScr = new StringBuilder();
         StringBuilder cScr = new StringBuilder();
@@ -537,6 +455,7 @@ public class ScriptletGenerator {
         return new String[] { elementScr.toString(), cScr.toString() };
     }
 
+    @SuppressWarnings("rawtypes")
     private String[] unpackMapAsKeyValue(String varname, Map m) {
         StringBuilder elementScr = new StringBuilder();
         StringBuilder mapScr = new StringBuilder();
@@ -547,7 +466,7 @@ public class ScriptletGenerator {
         mapScr.append(" = new ");
         mapScr.append(m.getClass().getCanonicalName());
         mapScr.append("();\n");
-        
+
 
         int i = 0;
         for(Object key : m.keySet()) {
@@ -558,7 +477,7 @@ public class ScriptletGenerator {
                 if(!keyScriptlet[0].equals("")) {
                     elementScr.append(keyScriptlet[0]);
                 }
-            
+
                 if(!keyScriptlet[1].equals("")) {
                     mapScr.append(keyScriptlet[1]);
                 }
@@ -568,7 +487,7 @@ public class ScriptletGenerator {
                 if(!valScriptlet[0].equals("")) {
                     elementScr.append(valScriptlet[0]);
                 }
-            
+
                 if(!valScriptlet[1].equals("")) {
                     mapScr.append(valScriptlet[1]);
                 }
