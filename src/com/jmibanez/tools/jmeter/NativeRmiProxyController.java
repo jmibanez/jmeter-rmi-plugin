@@ -213,9 +213,14 @@ public class NativeRmiProxyController extends GenericController {
         proxy.setNamingPort(getProxyNamingPort());
         proxy.setBindingScript(getBindingScript());
 
+        log.debug("Target RMI name:\t" + getTargetRmiName());
+        log.debug("Naming port:\t" + getProxyNamingPort());
+        log.debug("Server port:\t" + getProxyPort());
+
         RmiSamplerGeneratorMethodRecorder recorder = new RmiSamplerGeneratorMethodRecorder();
         recorder.setTarget(this);
         recorder.setSamplerNameFormat(getSamplerNameFormat());
+        log.debug("Sampler name format:\t" + getSamplerNameFormat());
         proxy.setMethodRecorder(recorder);
 
         log.info("Starting proxy thread");
