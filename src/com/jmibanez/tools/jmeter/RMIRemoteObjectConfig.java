@@ -15,7 +15,10 @@ import java.rmi.Naming;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.jmeter.config.ConfigTestElement;
+import org.apache.jmeter.engine.util.NoThreadClone;
+import org.apache.jmeter.testelement.TestStateListener;
 import org.apache.jmeter.testelement.ThreadListener;
+import org.apache.jmeter.testelement.property.BooleanProperty;
 import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.testelement.property.StringProperty;
 import org.apache.jmeter.testelement.property.TestElementProperty;
@@ -42,17 +45,23 @@ import com.jmibanez.tools.jmeter.impl.SwitchingRemoteRegistry;
  */
 public class RMIRemoteObjectConfig
     extends ConfigTestElement
-    implements ThreadListener {
+    implements NoThreadClone,
+               TestStateListener,
+               ThreadListener {
 
     public static final long serialVersionUID = 43339L;
 
     public static final String TARGET_RMI_NAME = "RmiRemoteObjectConfig.target_rmi_name";
+    public static final String IS_GLOBAL = "RmiRemoteObjectConfig.is_global";
     public static final String REMOTE_INSTANCES = "RMIRemoteObject.instances";
 
     private static Log log = LogFactory.getLog(RMIRemoteObjectConfig.class);
 
     private ThreadLocal<RemoteRegistry> registry = new ThreadLocal<>();
     private ThreadLocal<Objenesis> factory = new ThreadLocal<>();
+
+    private RemoteRegistry globalRegistry;
+    private Objenesis globalFactory;
 
     /**
      * Creates a new <code>RMIRemoteObjectConfig</code> instance.
@@ -78,11 +87,44 @@ public class RMIRemoteObjectConfig
         getRegistry().setArgumentTypes(targetName, methodName, argTypes);
     }
 
+    @Override
+    public void testStarted(String host) {
+        testStarted();
+    }
+
+    @Override
+    public void testStarted() {
+        if(isGlobal()) {
+            log.debug("RMI Remote Object Config element in global mode");
+            globalRegistry = new RemoteRegistry();
+            globalFactory = new ObjenesisStd();
+        }
+    }
+
+    @Override
+    public void testEnded(String host) {
+        testEnded();
+    }
+
+    @Override
+    public void testEnded() {
+        if(isGlobal()) {
+            log.debug("Stopping RMI Remote Object Config element in global mode");
+            globalRegistry = null;
+            globalFactory = null;
+        }
+    }
+
     public void threadStarted() {
         log.info("Configuring remote stub registry for thread");
 
-        this.registry.set(new RemoteRegistry());
-        this.factory.set(new ObjenesisStd());
+        if(!isGlobal()) {
+            this.registry.set(new RemoteRegistry());
+            this.factory.set(new ObjenesisStd());
+        }
+        else {
+            log.debug("Global registry is " + globalRegistry);
+        }
 
         JMeterContext jmctx = JMeterContextService.getContext();
         if(jmctx.getVariables().getObject(REMOTE_INSTANCES) == null) {
@@ -92,17 +134,33 @@ public class RMIRemoteObjectConfig
     }
 
     public void threadFinished() {
-        registry.remove();
-        factory.remove();
+        if(!isGlobal()) {
+            registry.remove();
+            factory.remove();
+        }
+    }
+
+    public boolean isGlobal() {
+        return getPropertyAsBoolean(IS_GLOBAL);
+    }
+
+    public void setGlobal(boolean isGlobal) {
+        setProperty(new BooleanProperty(IS_GLOBAL, isGlobal));
     }
 
     public Objenesis getFactory() {
-        return this.factory.get();
+        if(isGlobal()) {
+            return this.globalFactory;
+        }
+        else {
+            return this.factory.get();
+        }
     }
 
     public Remote getTarget(final String targetName) {
         assert (targetName != null && getRegistry().getTarget(targetName) != null): "Map should contain key";
 
+        log.debug("getRegistry() => " + getRegistry());
         Remote target = getRegistry().getTarget(targetName);
         if(target == null && targetName == null) {
             try {
@@ -129,6 +187,13 @@ public class RMIRemoteObjectConfig
     }
 
     public RemoteRegistry getRegistry() {
-        return this.registry.get();
+        if(isGlobal()) {
+            log.debug("getRegistry(): return global registry " + this.globalRegistry);
+            return this.globalRegistry;
+        }
+        else {
+            log.debug("getRegistry(): return thread local registry");
+            return this.registry.get();
+        }
     }
 }
