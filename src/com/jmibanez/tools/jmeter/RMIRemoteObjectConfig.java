@@ -57,11 +57,11 @@ public class RMIRemoteObjectConfig
 
     private static Log log = LogFactory.getLog(RMIRemoteObjectConfig.class);
 
-    private ThreadLocal<RemoteRegistry> registry = new ThreadLocal<>();
-    private ThreadLocal<Objenesis> factory = new ThreadLocal<>();
+    private transient ThreadLocal<RemoteRegistry> registry = new ThreadLocal<>();
+    private transient ThreadLocal<Objenesis> factory = new ThreadLocal<>();
 
-    private RemoteRegistry globalRegistry;
-    private Objenesis globalFactory;
+    private transient RemoteRegistry globalRegistry;
+    private transient Objenesis globalFactory;
 
     /**
      * Creates a new <code>RMIRemoteObjectConfig</code> instance.
