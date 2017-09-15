@@ -85,7 +85,7 @@ public class RMIRemoteObjectConfigGUI extends AbstractConfigGui {
 
         add(makeTitlePanel(), BorderLayout.NORTH);
 
-        Box config = Box.createVerticalBox();
+        JPanel config = new VerticalPanel();
 
         targetRmiName = new JTextField("", 40);
         targetRmiName.setName(TARGETNAME_FIELD);

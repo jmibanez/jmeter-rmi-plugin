@@ -56,6 +56,8 @@ public class NativeRmiProxyController extends GenericController {
     public static final String PROXY_NAMING_PORT = "RmiProxy.proxy_naming_port";
     public static final String PROXY_PORT = "RmiProxy.proxy_port";
 
+    public static final String SAMPLER_NAME_FORMAT = "RmiProxy.sampler_name_format";
+
     public static final String BINDING_SCRIPT = "RmiProxy.binding_script";
 
     private static Log log = LogFactory.getLog(NativeRmiProxyController.class);
@@ -123,6 +125,18 @@ public class NativeRmiProxyController extends GenericController {
         setProperty(new StringProperty(BINDING_SCRIPT, script));
     }
 
+    public String getSamplerNameFormat() {
+        String samplerNameFormat = getPropertyAsString(SAMPLER_NAME_FORMAT);
+        if (samplerNameFormat == null || "".equals(samplerNameFormat)) {
+            log.debug("Compat: Empty format, using default");
+            samplerNameFormat = RmiSamplerGeneratorMethodRecorder.DEFAULT_SAMPLER_NAME_FORMAT;
+        }
+        return samplerNameFormat;
+    }
+
+    public void setSamplerNameFormat(final String samplerNameFormat) {
+        setProperty(new StringProperty(SAMPLER_NAME_FORMAT, samplerNameFormat));
+    }
 
     public JMeterTreeNode getTarget() {
         return target;
@@ -199,8 +213,14 @@ public class NativeRmiProxyController extends GenericController {
         proxy.setNamingPort(getProxyNamingPort());
         proxy.setBindingScript(getBindingScript());
 
+        log.debug("Target RMI name:\t" + getTargetRmiName());
+        log.debug("Naming port:\t" + getProxyNamingPort());
+        log.debug("Server port:\t" + getProxyPort());
+
         RmiSamplerGeneratorMethodRecorder recorder = new RmiSamplerGeneratorMethodRecorder();
         recorder.setTarget(this);
+        recorder.setSamplerNameFormat(getSamplerNameFormat());
+        log.debug("Sampler name format:\t" + getSamplerNameFormat());
         proxy.setMethodRecorder(recorder);
 
         log.info("Starting proxy thread");

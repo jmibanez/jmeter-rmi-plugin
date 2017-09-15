@@ -36,8 +36,11 @@ import org.apache.commons.logging.LogFactory;
 public class RmiSamplerGeneratorMethodRecorder
     implements MethodRecorder {
 
+    public static final String DEFAULT_SAMPLER_NAME_FORMAT = "[%1$s] %2$d - %3$s:%4$s";
+
     private static Log log = LogFactory.getLog(RmiSamplerGeneratorMethodRecorder.class);
 
+    private String samplerNameFormat;
     private NativeRmiProxyController target;
 
 
@@ -67,6 +70,16 @@ public class RmiSamplerGeneratorMethodRecorder
     public void setTarget(NativeRmiProxyController argTarget) {
         this.target = argTarget;
     }
+
+
+    public String getSamplerNameFormat() {
+        return this.samplerNameFormat;
+    }
+
+    public void setSamplerNameFormat(final String samplerNameFormat) {
+        this.samplerNameFormat = samplerNameFormat;
+    }
+
 
     @SuppressWarnings("unchecked")
     private String createArgumentsScript(MethodCallRecord record) {
@@ -148,17 +161,33 @@ public class RmiSamplerGeneratorMethodRecorder
         BeanShellPostProcessor retValProc = null;
         sampler.setProperty(TestElement.TEST_CLASS, RMISampler.class.getName());
         sampler.setProperty(TestElement.GUI_CLASS, RMISamplerGUI.class.getName());
-        sampler.setTargetName(r.getTarget());
-        sampler.setMethodName(r.getMethod());
+        sampler.setMethodName(r.getMangledMethodName());
 
         String instanceName = r.getTarget();
+        sampler.setTargetName(instanceName);
         if (instanceName == null) {
             instanceName = "";
         }
-        sampler.setName(String.format("[%1s] %2d - %3s",
-                                      instanceName,
-                                      r.getIndex(),
-                                      r.getMethod()));
+
+        int index = r.getIndex();
+        String method = r.getMethod();
+        String mangledArgs = r.getMangledArguments();
+
+        String samplerName = "";
+
+        try {
+            samplerName = String.format(samplerNameFormat,
+                                        instanceName, index,
+                                        method, mangledArgs);
+        }
+        catch(Exception e) {
+            // use default format
+            log.warn("Invalid sampler name format", e);
+            samplerName = String.format(DEFAULT_SAMPLER_NAME_FORMAT,
+                                        instanceName, index,
+                                        method, mangledArgs);
+        }
+        sampler.setName(samplerName);
 
         sampler.setArgumentsScript(createArgumentsScript(r));
 
